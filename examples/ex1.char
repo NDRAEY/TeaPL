@@ -1,0 +1,8 @@
+print("Hello! It's Charmeleon programming language written in Python version 3.10\n");
+print("Now, it has no any concatenation abilities :(\n");
+e = 77.2
+z = 9
+g = 2
+
+e-=2
+print("%f",e)
