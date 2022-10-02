@@ -1,6 +1,0 @@
-string1 = "Charmeleon"+" and Pikachu"-". You forgot about Scyther!\n"
-num1 = 98
-num2 = 777828
-num3 = 7.2
-str2 = "Lapras"
-print("%s",string1)

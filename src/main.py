@@ -1,30 +1,43 @@
-import lex
-import ccode
+#!/usr/bin/python3
+
+import tokenizer
+import action
+import pretty
+import expression as expr
+from codegen import codegen
 import sys
 import subprocess as sp
 import time
+from pprint import pprint
 
-print("The \033[31mCharmeleon\033[0m Project [v 1.0]\n")
+ver = "1.1"
+
+print(f"The Charmeleon Project [v{ver}]\n")
 
 if not sys.argv[1:]:
     print("Specify a file! Exiting...")
-    exit()
+    exit(1)
 
-code = open(sys.argv[-1]).read()
-print("\rGetting ready...\033[K",end='')
+fname = sys.argv[-1]
+
+code = open(fname).read()
 starttime = time.time()
-lexed = lex.code2objs(code)
-ccoded = ccode.lex2ccode(lexed)
-cc = ccode.CCode()
-print("\rAlmost done...\033[K",end='')
-codetotal = (cc.model%(cc.getnormalincs(ccoded['includes'])+"\n"+
-                       ccoded['vars'],
-                       ccoded['outmains'],
-                       ccoded['code']))
-print(codetotal)
-print("\rCompiling...\033[K",end='')
-gcc = sp.Popen(['gcc','-x','c','-o',sys.argv[-1].split(".")[0],'-'],stdin=sp.PIPE)
-gcc.stdin.write(bytes(codetotal,'utf-8'))
+tokenized = orig = tokenizer.tokenize(code)
+tokenized = pretty.pretty(tokenized, orig)
+tokenized = pretty.remove_whitespaces(tokenized)
+tokenized = expr.parse_expressions(tokenized, orig)
+pprint(tokenized)
+print()
+actions = action.make_actions(tokenized, orig)
+print()
+pprint(actions)
+print()
+code = codegen(actions)
+print(code)
+
+print("\rCompiling...\033[K", end='')
+gcc = sp.Popen(['clang','-x','c','-o',sys.argv[-1].split(".")[0],'-'], stdin=sp.PIPE)
+gcc.stdin.write(bytes(code, 'utf-8'))
 gcc.stdin.close()
 gcc.wait()
 print("\rDone %.2fs\033[K\n"%(time.time()-starttime),end='')
