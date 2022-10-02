@@ -104,12 +104,12 @@ def make_actions(tokens: list[Token, ...], orig: list[Token]) -> list[Action]:
             with_ = tokens[idx]
 
             cond = Condition(what, sign, with_)
-            conds.append(["if", cond])
 
             idx += 1
 
             body = tokens[idx]
-            print(body)
+
+            conds.append(["if", cond, body])
 
             idx += 1
             while True:  # Check [elif]/else

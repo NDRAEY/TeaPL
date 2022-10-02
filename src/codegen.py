@@ -1,7 +1,9 @@
 from tokenizer import Token
 from objects import *
 from random import randint
-from action import Action, ActionType
+from action import Action, ActionType, make_actions
+import pretty
+import expression as expr
 
 def randstr() -> str:
     return ''.join([chr(randint(ord('a'), ord('z'))) for t in range(10)])
@@ -27,7 +29,7 @@ def build_args(variables: list[Variable], args: list[Token]) -> str:
     return total
     ...
 
-def codegen(actions: list[Action]) -> str:
+def codegen(actions: list[Action], wrap = True) -> str:
     code = ""
     funccode = ""
 
@@ -60,10 +62,45 @@ def codegen(actions: list[Action]) -> str:
             val = need.value
 
             code += f"{on} {op}= {val};\n"
+
+        elif el.type == ActionType.CONDITION:
+            maincond = need[0][1]
+            mainbody = mborig = need[0][2].tokens
+            otherbodies = need[1:]
+
+            maincond = [maincond.what.token, maincond.sign.token, maincond.with_.token]
+            code += "if ("+' '.join(maincond)+") {\n"
+
+            funcbody = pretty.pretty(mainbody, mborig)
+            funcbody = pretty.remove_whitespaces(funcbody)
+            funcbody = expr.parse_expressions(funcbody, mborig)
+            funcbody = make_actions(funcbody, mborig)
+
+            functot = codegen(funcbody, wrap=False)
+
+            code += functot+"}"
+
+            for mk in otherbodies:
+                if mk[0]=="else":
+                    body = borig = mk[1].tokens
+                    code += "else{\n"
+
+                    funcbody = pretty.pretty(body, borig)
+                    funcbody = pretty.remove_whitespaces(funcbody)
+                    funcbody = expr.parse_expressions(funcbody, borig)
+                    funcbody = make_actions(funcbody, borig)
+                    functot = codegen(funcbody, wrap=False)
+
+                    code += functot+"}"
+                    break
+            ...  # For elif and else
+
+            code += "\n"
         idx += 1
 
-    allcode = funccode + "\n\n"
-
-    allcode += "int main(int argc, char** argv) {\n"+code+"\n}"
-
-    return allcode
+    if wrap:
+        allcode = funccode + "\n\n"
+        allcode += "int main(int argc, char** argv) {\n"+code+"\n}"
+        return allcode
+    else:
+        return code
