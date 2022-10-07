@@ -9,14 +9,27 @@ Currently, it transpiles code into C source.
 # Features
 
 - [x] Standard types
+	- [x] Numerals (uint, int, short, ...)
+	- [x] String
+	- [ ] Own types creation
 - [x] Variables
+	- [x] Assign
+	- [x] Reassign
 - [ ] Functions
-- [ ] Control flow
+	- [ ] Value-Returnable
+	- [ ] Non-Value-Returnable
+- [x] Control flow
+	- [x] if
+	- [ ] elif
+	- [x] else
 - [ ] Loops
+	- [x] while
+	- [ ] for
+	- [ ] endless
+	- [ ] break / continue
 - [ ] String concatenation
 - [ ] Overflow prevention
 - [ ] Pointers
 - [ ] Standard library
 - [ ] FFI
-- [ ] Dual Mode - With standard library and without standard library
 - [ ] Memory safety
