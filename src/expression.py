@@ -1,5 +1,5 @@
 from tokenizer import Token
-from objects import Expression
+from objects import Expression, Comprasion
 from error import error
 
 COMPARE = [
@@ -57,4 +57,27 @@ def parse_expressions(tokens: list[Token, ...], orig: list[Token, ...]) -> list[
         else:
             tok.append(el)
         idx += 1
+    return tok
+
+def parse_comprasions(tokens: list[Token, ...], orig: list[Token, ...]) -> list[Token, ...]:
+    tok = []
+
+    idx = 0
+    while idx < len(tokens):
+        el = tokens[idx]
+
+        if idx+1 < len(tokens) and (isinstance(tokens[idx+1], Token) and tokens[idx+1].token in COMPARE):
+            what = el
+            sign = tokens[idx+1].token
+            with_ = tokens[idx+2]
+
+            tok.append(Comprasion(
+                what, sign, with_
+            ))
+            idx += 3
+            continue
+        else:
+            tok.append(el)
+        idx += 1
+
     return tok

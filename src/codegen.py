@@ -77,7 +77,7 @@ def codegen(actions: list[Action], wrap = True) -> str:
             mainbody = mborig = need[0][2].tokens
             otherbodies = need[1:]
 
-            maincond = [maincond.what.token, maincond.sign.token, maincond.with_.token]
+            maincond = [maincond.what.token, maincond.sign, maincond.with_.token]
             code += "if ("+' '.join(maincond)+") {\n"
 
             funcbody = pretty.pretty(mainbody, mborig)

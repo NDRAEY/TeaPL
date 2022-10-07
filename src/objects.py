@@ -31,7 +31,7 @@ class Expression:
     line: int
 
 @dataclass
-class Condition:
+class Comprasion:
     what: Expression
     sign: str
     with_: Expression

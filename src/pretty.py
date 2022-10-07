@@ -4,7 +4,7 @@ Charmeleon: Join tokenized strings into one string (internal)
 
 from tokenizer import Token
 from error import error
-from objects import FunctionCall, Block
+from objects import FunctionCall, Block, Comprasion
 from expression import parse_expressions as exprp
 
 def select_line(tokens: list[Token], line: int) -> list[Token, ...]:
@@ -32,7 +32,7 @@ def pretty(tokens: list[Token, ...], origtk: list[Token]) -> list[Token, ...]:
     while idx < len(tokens):
         i = tokens[idx]
 
-        if i.token == "\"":
+        if i.token == "\"":  # Strings
             first = i
 
             idx += 1
@@ -79,7 +79,7 @@ def pretty(tokens: list[Token, ...], origtk: list[Token]) -> list[Token, ...]:
                 z += 1
             tok.append(FunctionCall(name, args, tks, tks[0].line))
             idx += 1
-        elif tokens[idx].token == "{":
+        elif tokens[idx].token == "{":  # Blocks
             block = []
 
             level = 1

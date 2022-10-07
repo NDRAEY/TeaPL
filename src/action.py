@@ -9,6 +9,7 @@ class ActionType(Enum):
     FUNC_CALL = 1
     CONDITION = 2
     MATH = 3
+    LOOP = 4
 
 @dataclass
 class Action:
@@ -97,14 +98,8 @@ def make_actions(tokens: list[Token, ...], orig: list[Token]) -> list[Action]:
         elif isinstance(i, Token) and i.token == "if":
             conds = []
             idx += 1
-            what = tokens[idx]
-            idx += 1
-            sign = tokens[idx]
-            idx += 1
-            with_ = tokens[idx]
-
-            cond = Condition(what, sign, with_)
-
+            cond = tokens[idx]
+            print("Condition: ", cond)
             idx += 1
 
             body = tokens[idx]
@@ -146,7 +141,7 @@ def make_actions(tokens: list[Token, ...], orig: list[Token]) -> list[Action]:
             idx += 1
             cond = tokens[idx]
 
-            print(cond)
+            print("Condition: ", cond)
 
             print("Loops unimplemented!")
             exit(1)
