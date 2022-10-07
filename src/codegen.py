@@ -27,7 +27,11 @@ def build_args(variables: list[Variable], args: list[Token]) -> str:
             total += ", "
     
     return total
-    ...
+
+def find_var(variables: list, name: str):
+    for i in variables:
+        if i.name == name:
+            return i
 
 def codegen(actions: list[Action], wrap = True) -> str:
     code = ""
@@ -41,12 +45,17 @@ def codegen(actions: list[Action], wrap = True) -> str:
 
         need = el.args
         if el.type == ActionType.ASSIGNATION:
-            vtype = to_ctype(need.type)
-            vname = need.name
-            vvalue = need.value.token
-
-            code += f"{vtype} {vname} = {vvalue};\n"
-            variables.append(need)
+            if "reassignation" not in el.metadata:
+                vtype = to_ctype(need.type)
+                vname = need.name
+                vvalue = need.value.token
+                code += f"{vtype} {vname} = {vvalue};\n"
+                variables.append(need)
+            else:
+                vname = need.name
+                vvalue = need.value.token
+                code += f"{vname} = {vvalue};\n"
+                variables.append(need)
 
         elif el.type == ActionType.FUNC_CALL:
             fname = need.name

@@ -209,7 +209,7 @@ def make_actions(tokens: list[Token, ...], orig: list[Token]) -> list[Action]:
                 actions.append(Action(
                     ActionType.ASSIGNATION,
                     {"reassignation": True},
-                    Variable(None, i.token, tokens[idx].token)
+                    Variable(None, i.token, tokens[idx])
                 ))
             # exit(1)
         else:
