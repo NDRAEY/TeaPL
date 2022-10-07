@@ -9,7 +9,7 @@ class ActionType(Enum):
     FUNC_CALL = 1
     CONDITION = 2
     MATH = 3
-    LOOP = 4
+    WHILE_LOOP = 4
 
 @dataclass
 class Action:
@@ -143,8 +143,14 @@ def make_actions(tokens: list[Token, ...], orig: list[Token]) -> list[Action]:
 
             print("Condition: ", cond)
 
-            print("Loops unimplemented!")
-            exit(1)
+            idx += 1
+            body = tokens[idx]
+
+            actions.append(Action(
+                ActionType.WHILE_LOOP,
+                {},
+                Loop(cond, body)
+            ))
         elif isinstance(i, FunctionCall):
             actions.append(Action(
                 ActionType.FUNC_CALL,

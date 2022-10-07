@@ -46,3 +46,8 @@ class MathOperationVariable:
     on: Variable
     operation: str
     value: Any
+
+@dataclass
+class Loop:
+    condition: Comprasion
+    body: list[Token, ...]

@@ -74,7 +74,8 @@ def codegen(actions: list[Action], wrap = True) -> str:
 
         elif el.type == ActionType.CONDITION:
             maincond = need[0][1]
-            mainbody = mborig = need[0][2].tokens
+            mainbody = need[0][2].tokens
+            mborig = need[0][2].tokens
             otherbodies = need[1:]
 
             maincond = [maincond.what.token, maincond.sign, maincond.with_.token]
@@ -105,6 +106,23 @@ def codegen(actions: list[Action], wrap = True) -> str:
             ...  # For elif and else
 
             code += "\n"
+        elif el.type == ActionType.WHILE_LOOP:
+            wcond = need.condition
+            wbody = need.body.tokens
+            worig = need.body.tokens
+
+            maincond = [wcond.what.token, wcond.sign, wcond.with_.token]
+
+            wbody = pretty.pretty(wbody, worig)
+            wbody = pretty.remove_whitespaces(wbody)
+            wbody = expr.parse_expressions(wbody, worig)
+            wbody = make_actions(wbody, worig)
+
+            wtot = codegen(wbody, wrap=False)
+
+            code += "while("+' '.join(maincond)+") {\n" + \
+                wtot + \
+            "}\n"
         idx += 1
 
     if wrap:
