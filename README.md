@@ -8,8 +8,8 @@ Currently, it transpiles code into C source.
 
 # Features
 
-- [ ] Standard types
-- [ ] Variables
+- [x] Standard types
+- [x] Variables
 - [ ] Functions
 - [ ] Control flow
 - [ ] Loops
