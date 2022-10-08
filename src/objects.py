@@ -24,6 +24,8 @@ class Function:
     name: str
     return_type: str
     args: str
+    tokens: list[Token]
+    line: int
 
 @dataclass
 class Expression:
@@ -51,3 +53,7 @@ class MathOperationVariable:
 class Loop:
     condition: Comprasion
     body: list[Token, ...]
+
+@dataclass
+class Group:
+    tokens: list[Token, ...]

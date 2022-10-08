@@ -2,17 +2,31 @@
 
 import tokenizer
 import action
+import objects
 import pretty
 import expression as expr
 from codegen import codegen
-import sys
+import sys, os
 import subprocess as sp
 import time
 from pprint import pprint
 
 ver = "1.1"
 
-print(f"The Charmeleon Project [v{ver}]\n")
+def parse_code(code: str) -> tuple[list[objects.Token], list[objects.Token]]:
+    tokenized = orig = tokenizer.tokenize(code)
+    tokenized = pretty.pretty(tokenized, orig)
+    tokenized = pretty.remove_whitespaces(tokenized)
+    tokenized = expr.parse_expressions(tokenized, orig)
+    tokenized = expr.parse_comprasions(tokenized, orig)
+    tokenized = pretty.build_funccalls(tokenized, orig)
+    return tokenized, orig
+
+def make_actions(tokens, orig: list[objects.Token, ...]) -> list[action.Action]:
+    actions = action.make_actions(tokenized, orig)
+    return actions
+
+print(f"The TeaPL Project [v{ver}]\n")
 
 if not sys.argv[1:]:
     print("Specify a file! Exiting...")
@@ -22,23 +36,24 @@ fname = sys.argv[-1]
 
 code = open(fname).read()
 starttime = time.time()
-tokenized = orig = tokenizer.tokenize(code)
-tokenized = pretty.pretty(tokenized, orig)
-tokenized = pretty.remove_whitespaces(tokenized)
-tokenized = expr.parse_expressions(tokenized, orig)
-tokenized = expr.parse_comprasions(tokenized, orig)
+tokenized, origtokens = parse_code(code)
 pprint(tokenized)
 print()
-actions = action.make_actions(tokenized, orig)
-print()
+actions = make_actions(tokenized, origtokens)
 pprint(actions)
 print()
 code = codegen(actions)
 print(code)
 
-print("\rCompiling...\033[K", end='')
-gcc = sp.Popen(['clang','-x','c','-o',sys.argv[-1].split(".")[0],'-'], stdin=sp.PIPE)
-gcc.stdin.write(bytes(code, 'utf-8'))
-gcc.stdin.close()
-gcc.wait()
+ofname = '.'.join(sys.argv[-1].split("/")[-1].split(".")[:-1])
+
+with open(ofname+".c", "w") as outfile:
+    outfile.write(code)
+    outfile.close()
+
+compiler = sp.Popen(['clang', '-x', 'c', '-Wall', ofname+".c", '-o', ofname])
+compiler.wait()
+
+os.remove(ofname+".c")
+
 print("\rDone %.2fs\033[K\n"%(time.time()-starttime),end='')

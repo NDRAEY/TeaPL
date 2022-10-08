@@ -33,6 +33,14 @@ def find_var(variables: list, name: str):
         if i.name == name:
             return i
 
+def parse_code_tokenized(tokens, orig: list[Token]) -> tuple[list[Token]]:
+    tokenized = pretty.pretty(tokens, orig)
+    tokenized = pretty.remove_whitespaces(tokenized)
+    tokenized = expr.parse_expressions(tokenized, orig)
+    tokenized = expr.parse_comprasions(tokenized, orig)
+    tokenized = pretty.build_funccalls(tokenized, orig)
+    return tokenized
+
 def codegen(actions: list[Action], wrap = True) -> str:
     code = ""
     funccode = ""
@@ -81,11 +89,8 @@ def codegen(actions: list[Action], wrap = True) -> str:
             maincond = [maincond.what.token, maincond.sign, maincond.with_.token]
             code += "if ("+' '.join(maincond)+") {\n"
 
-            funcbody = pretty.pretty(mainbody, mborig)
-            funcbody = pretty.remove_whitespaces(funcbody)
-            funcbody = expr.parse_expressions(funcbody, mborig)
+            funcbody = parse_code_tokenized(mainbody, mborig)
             funcbody = make_actions(funcbody, mborig)
-
             functot = codegen(funcbody, wrap=False)
 
             code += functot+"}"
@@ -95,9 +100,7 @@ def codegen(actions: list[Action], wrap = True) -> str:
                     body = borig = mk[1].tokens
                     code += "else{\n"
 
-                    funcbody = pretty.pretty(body, borig)
-                    funcbody = pretty.remove_whitespaces(funcbody)
-                    funcbody = expr.parse_expressions(funcbody, borig)
+                    funcbody = parse_code_tokenized(body, borig)
                     funcbody = make_actions(funcbody, borig)
                     functot = codegen(funcbody, wrap=False)
 
@@ -113,11 +116,9 @@ def codegen(actions: list[Action], wrap = True) -> str:
 
             maincond = [wcond.what.token, wcond.sign, wcond.with_.token]
 
-            wbody = pretty.pretty(wbody, worig)
-            wbody = pretty.remove_whitespaces(wbody)
-            wbody = expr.parse_expressions(wbody, worig)
+            wbody = parse_code_tokenized(wbody, worig)
             wbody = make_actions(wbody, worig)
-
+            
             wtot = codegen(wbody, wrap=False)
 
             code += "while("+' '.join(maincond)+") {\n" + \

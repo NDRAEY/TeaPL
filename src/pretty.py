@@ -4,7 +4,7 @@ Charmeleon: Join tokenized strings into one string (internal)
 
 from tokenizer import Token
 from error import error
-from objects import FunctionCall, Block, Comprasion
+from objects import FunctionCall, Block, Comprasion, Group
 from expression import parse_expressions as exprp
 
 def select_line(tokens: list[Token], line: int) -> list[Token, ...]:
@@ -50,13 +50,10 @@ def pretty(tokens: list[Token, ...], origtk: list[Token]) -> list[Token, ...]:
 
             last = tokens[idx]
             tok.append(Token("\""+''.join(collect)+"\"", first.start, last.end, last.line))
-        elif idx+1 < len(tokens) and tokens[idx+1].token == "(":  # Function call
-            name = tokens[idx].token
-            args = []
+        elif tokens[idx].token == "(":
+            collected = []
 
-            tks = [tokens[idx], tokens[idx+1]]
-
-            idx+=2
+            idx+=1
             level = 1
             while True:
                 if tokens[idx].token == "(":
@@ -64,20 +61,10 @@ def pretty(tokens: list[Token, ...], origtk: list[Token]) -> list[Token, ...]:
                 if tokens[idx].token == ")":
                     level -= 1
                 if level == 0: break
-                args.append(tokens[idx])
-                tks.append(tokens[idx])
+                collected.append(tokens[idx])
                 idx += 1
-            tks.append(tokens[idx])
-
-            args = exprp(pretty(args, origtk), origtk)
-
-            z = 0
-            while z < len(args):
-                if isinstance(args[z], Token) and args[z].token in (",", " "):
-                    del args[z]
-                    continue
-                z += 1
-            tok.append(FunctionCall(name, args, tks, tks[0].line))
+            
+            tok.append(Group(collected))
             idx += 1
         elif tokens[idx].token == "{":  # Blocks
             block = []
@@ -95,5 +82,28 @@ def pretty(tokens: list[Token, ...], origtk: list[Token]) -> list[Token, ...]:
             # idx += 1
         else:
             tok.append(i)
+        idx += 1
+    return tok
+
+def build_funccalls(tokens, orig: list[Token]) -> list[Token, ...]:
+    tok = []
+    idx = 0
+
+    while idx < len(tokens):
+        el = tokens[idx]
+
+        if isinstance(el, Token) and idx + 1 < len(tokens) and isinstance(tokens[idx+1], Group):
+            args_raw = pretty(tokens[idx+1].tokens, orig)
+            args = []
+
+            for i in args_raw:
+                if isinstance(i, Token) and i.token in (" ", ","): continue
+                args.append(i)
+            
+            tok.append(FunctionCall(el.token, args, args_raw, el.line))
+            idx += 1
+        else:
+            tok.append(el)
+        
         idx += 1
     return tok

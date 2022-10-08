@@ -212,10 +212,13 @@ def make_actions(tokens: list[Token, ...], orig: list[Token]) -> list[Action]:
                     {"reassignation": True},
                     Variable(None, i.token, tokens[idx])
                 ))
-            # exit(1)
         else:
-            error(orig, tokens[idx], "Syntax Error or Unimplemented Action!",
-                  tokens[idx].start, tokens[idx].end);
+            if isinstance(tokens[idx], Token):
+                error(orig, tokens[idx], "Syntax Error or Unimplemented Action!",
+                      tokens[idx].start, tokens[idx].end)
+            elif isinstance(tokens[idx], Expression):
+                error(orig, tokens[idx], "Syntax Error or Unimplemented Action!",
+                      tokens[idx].tokens[0].start, tokens[idx].tokens[-1].end)
         idx += 1
 
     return actions

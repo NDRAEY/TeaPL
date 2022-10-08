@@ -1,5 +1,5 @@
 from tokenizer import Token
-from objects import Expression, Comprasion
+from objects import Expression, Comprasion, Group
 from error import error
 
 COMPARE = [
@@ -13,7 +13,19 @@ ARITH = [
     "|", "&", "^", "~"
 ]
 
-def parse_expressions(tokens: list[Token, ...], orig: list[Token, ...]) -> list[Token, ...]:
+def expr2str(expr: Expression) -> str:
+    s = ""
+
+    print("=",expr)
+    for i in expr.tokens:
+        if isinstance(i, Expression):
+            s += expr2str(i)
+            continue
+        s += i.token
+        
+    return s
+
+def parse_expressions(tokens, orig: list[Token, ...]) -> list[Token, ...]:
     tok = []
 
     idx = 0
@@ -30,9 +42,18 @@ def parse_expressions(tokens: list[Token, ...], orig: list[Token, ...]) -> list[
 
             idx += 1
             while True:
+                if idx >= len(tokens):
+                    break
+                if isinstance(tokens[idx], Token) and tokens[idx].token == "\n": break
+                if isinstance(tokens[idx], Group):
+                    prs = parse_expressions(tokens[idx].tokens, orig)[0]
+                    # ^--- Just check for correct expression
+                    # expr.append(tokens[idx])
+                    expr.append(prs)
+                    idx += 1
+                    continue
                 if not sign:
                     if tokens[idx].token in ARITH:
-                        print("Double sign!")
                         error(orig, tokens[idx], "Arithmetic error: Double sign!",
                               tokens[idx].start, tokens[idx].end)
                         exit(1)
@@ -40,8 +61,7 @@ def parse_expressions(tokens: list[Token, ...], orig: list[Token, ...]) -> list[
                         expr.append(tokens[idx])
                         sign = True
                 else:
-                    if idx >= len(tokens):
-                        break
+                    if idx >= len(tokens): break
                     
                     if tokens[idx].token in ARITH:
                         expr.append(tokens[idx])
@@ -53,7 +73,12 @@ def parse_expressions(tokens: list[Token, ...], orig: list[Token, ...]) -> list[
                 expr,
                 expr[0].line
             ))
-            tok.append(tokens[idx])
+            if idx < len(tokens):
+                tok.append(tokens[idx])
+            elif idx - 1 < len(tokens):
+                if tokens[idx-1].token in ARITH:
+                    error(orig, tokens[idx-1], "Unexpected arithmetic sign at end!",
+                          tokens[idx-1].start, tokens[idx-1].end)
         else:
             tok.append(el)
         idx += 1
@@ -81,3 +106,6 @@ def parse_comprasions(tokens: list[Token, ...], orig: list[Token, ...]) -> list[
         idx += 1
 
     return tok
+
+def check_expr(tokens, orig: list[Token, ...], expression: Expression):
+    ...

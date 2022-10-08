@@ -11,12 +11,12 @@ def error(tokens: list[Token], token: Token, msg: str, start: int, end: int):
                 ffound = i
             if i.token == "\n": continue
             seltok.append(i)
-    print(f"First: {ffound.start}, {ffound.end}, {ffound.token}")
+    # print(f"First: {ffound.start}, {ffound.end}, {ffound.token}")
 
     tokstr = ""
     for i in seltok:
         tokstr += i.token
-    print(f"{start=}; {end=}")
+    # print(f"{start=}; {end=}")
     print(f"\x1b[31mError\x1b[0m: Line {line}: {msg}")
     print(f"\t{tokstr}")
     start -= ffound.start
