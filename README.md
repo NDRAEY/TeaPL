@@ -27,9 +27,11 @@ Currently, it transpiles code into C source.
 	- [ ] for
 	- [ ] endless
 	- [ ] break / continue
+- [ ] Standard library
 - [ ] String concatenation
+- [ ] Arrays
+- [ ] Dictionaries
 - [ ] Overflow prevention
 - [ ] Pointers
-- [ ] Standard library
-- [ ] FFI
 - [ ] Memory safety
+- [ ] FFI
