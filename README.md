@@ -15,21 +15,53 @@ Currently, it transpiles code into C source.
 - [x] Variables
 	- [x] Assign
 	- [x] Reassign
-- [ ] Functions
+- [x] Functions
 	- [ ] Value-Returnable
-	- [ ] Non-Value-Returnable
+		- [ ] Return any value
+	- [x] Non-Value-Returnable
 - [x] Control flow
 	- [x] if
-	- [ ] elif
+	- [x] elif
 	- [x] else
 - [ ] Loops
 	- [x] while
 	- [ ] for
 	- [ ] endless
 	- [ ] break / continue
+- [ ] Standard library
 - [ ] String concatenation
+- [ ] Arrays
+	- [x] Single-type
+	- [x] Multi-dimensional arrays
+	- [ ] Indexing
+	- [ ] Indexing and assigning
+	- [ ] Multi-type
+- [ ] Dictionaries
 - [ ] Overflow prevention
 - [ ] Pointers
-- [ ] Standard library
-- [ ] FFI
 - [ ] Memory safety
+- [ ] FFI
+	- [x] Minimal
+
+# Installation (for Linux)
+
+Make sure `clang` or `gcc` installed
+
+1. Clone repository:
+	```bash
+	git clone https://github.com/NDRAEY/TeaPL
+	```
+
+2. Enter directory and install package:
+	```bash
+	cd TeaPL
+	python3 setup.py install
+	```
+
+3. Now, you have the `teapl` program installed!
+
+# Usage
+
+```bash
+teapl program.tea
+```

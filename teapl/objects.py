@@ -1,6 +1,12 @@
 from typing import Any
 from dataclasses import dataclass
-from tokenizer import Token
+
+try:
+    from .tokenizer import Token
+except:
+    from tokenizer import Token
+
+ver = "1.1"
 
 @dataclass
 class DefaultVariable:
@@ -23,8 +29,8 @@ class FunctionCall:
 class Function:
     name: str
     return_type: str
-    args: str
-    tokens: list[Token]
+    args: list[Token, ...]
+    tokens: list[Token, ...]
     line: int
 
 @dataclass
@@ -41,6 +47,8 @@ class Comprasion:
 @dataclass
 class Block:
     tokens: list[Token, ...]
+    start: int
+    end: int
     line: int
 
 @dataclass
@@ -57,3 +65,16 @@ class Loop:
 @dataclass
 class Group:
     tokens: list[Token, ...]
+
+@dataclass
+class Array:
+    tokens: list[Token, ...]
+
+@dataclass
+class IndexedValue:
+    value: Any
+    index: Token
+
+@dataclass
+class Return:
+    value: Any

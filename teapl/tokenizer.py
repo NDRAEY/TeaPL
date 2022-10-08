@@ -30,13 +30,18 @@ def tokenize(code):
                     idx += 2
                     continue
 
-            if i in ("+", "-"):
+            if i in ("+", "-", "|", "&", "/"):
                 n = code[idx+1]
                 if n == i:
                     i = i+n
                     tokens.append(Token(i, idx, idx+len(i), line))
                     idx += 2
                     continue
+
+            if i == "-" and code[idx+1] == ">":
+                tokens.append(Token("->", idx, idx+2, line))
+                idx += 2
+                continue
             
             tokens.append(Token(i, idx, idx+len(i), line))
 
@@ -53,4 +58,5 @@ def tokenize(code):
     return tokens
 
 if __name__=="__main__":
-    print(tokenize("progr = 72\n16"))
+    from pprint import pprint
+    pprint(tokenize("hyvaa -> huomenta"))

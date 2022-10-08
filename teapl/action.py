@@ -1,8 +1,18 @@
-from enum import Enum
-from error import error
-from tokenizer import Token
+# How you call this? AST?
 
-from objects import *
+from enum import Enum
+from pprint import pprint
+
+try:
+    from teapl.error import error
+    from teapl.tokenizer import Token
+    from teapl.objects import *
+    from teapl.utils import *
+except:
+    from error import error
+    from tokenizer import Token
+    from objects import *
+    from utils import *
 
 class ActionType(Enum):
     ASSIGNATION = 0
@@ -10,6 +20,9 @@ class ActionType(Enum):
     CONDITION = 2
     MATH = 3
     WHILE_LOOP = 4
+    FUNCTION = 5
+    RETURN = 6
+    C_EXTERN = 7
 
 @dataclass
 class Action:
@@ -50,7 +63,7 @@ def make_actions(tokens: list[Token, ...], orig: list[Token]) -> list[Action]:
             idx += 1
             continue # I know
 
-        if isinstance(tokens[idx], Token) and (i.token in TYPES):
+        if isinstance(i, Token) and (i.token in TYPES):            
             otype = i.token
             idx += 1
 
@@ -72,10 +85,10 @@ def make_actions(tokens: list[Token, ...], orig: list[Token]) -> list[Action]:
                 if tokens[idx+2].token == "=":
                     idx += 1
                     break
-                idx += 2
+                idx += 2  # If bug appears change this to 1.
 
             idx += 1
-            if tokens[idx].token == "\n":
+            if tokens[idx].token == "\n":  # If value was not specified
                 for m in names:
                     actions.append(Action(
                         ActionType.ASSIGNATION,
@@ -87,6 +100,18 @@ def make_actions(tokens: list[Token, ...], orig: list[Token]) -> list[Action]:
             if tokens[idx].token == "=":
                 idx += 1
                 value = tokens[idx]
+
+                if isinstance(value, FunctionCall):
+                    tname = value.name
+                    eline = value.line
+                    targs = argsorig = value.args
+
+                    print("N/A", tname, targs)
+                    value = parse_code_tokenized_lite(targs, argsorig)
+                    # value = build_args(value)
+
+                    value = FunctionCall(tname, value, argsorig, eline)
+                    print("Needs:", value)
 
                 for m in names:
                     actions.append(Action(
@@ -102,6 +127,9 @@ def make_actions(tokens: list[Token, ...], orig: list[Token]) -> list[Action]:
             print("Condition: ", cond)
             idx += 1
 
+            if idx >= len(tokens):
+                error(tokens, tokens[idx-1], "Unexcepted EOF",
+                      tokens[idx-1].start, tokens[idx-1].start+1)
             body = tokens[idx]
 
             conds.append(["if", cond, body])
@@ -114,7 +142,8 @@ def make_actions(tokens: list[Token, ...], orig: list[Token]) -> list[Action]:
 
             ...  # Check for elif(s) with loop here.
                 
-            if idx < len(tokens): # Check [elif]/else
+            while idx < len(tokens): # Check [elif]/else
+                print(f"{idx}/{len(tokens)}")
                 if tokens[idx].token == "else":
                     idx += 1
                     if idx >= len(tokens):
@@ -132,6 +161,22 @@ def make_actions(tokens: list[Token, ...], orig: list[Token]) -> list[Action]:
                                   tokens[idx].start, tokens[idx].end)
                     elseblock = tokens[idx]
                     conds.append(["else", elseblock])
+                    print("Added else")
+                elif tokens[idx].token == "elif":
+                    idx += 1
+                    if idx >= len(tokens):
+                        error(orig, tokens[idx - 1],
+                              "Excepted Condition, but EOF found!",
+                              tokens[idx - 1].start, tokens[idx - 1].end)
+                    cond = tokens[idx]
+                    idx += 1
+                    elifblock = tokens[idx]
+                    conds.append(["elif", cond, elifblock])
+                else:
+                    print("Stopping here... ", tokens[idx])
+                    break
+                idx += 1
+                
             actions.append(Action(
                 ActionType.CONDITION,
                 {},
@@ -151,6 +196,58 @@ def make_actions(tokens: list[Token, ...], orig: list[Token]) -> list[Action]:
                 {},
                 Loop(cond, body)
             ))
+        elif isinstance(i, Token) and i.token == "func":
+            idx += 1
+            fcall = tokens[idx]
+
+            fname, fargs = fcall.name, fcall.args
+            
+            # print("Name:", fname)
+            # print("Args:", fargs)
+
+            idx += 1
+            fbody = tokens[idx]
+            ret = None
+
+            if (not isinstance(fbody, Block)) and isinstance(fbody, Token):
+                ret = fbody.token
+                idx += 1
+                fbody = tokens[idx]
+
+            # print("Return:", ret)
+            # pprint(fbody)
+
+            actions.append(Action(
+                ActionType.FUNCTION,
+                {},
+                Function(fname, ret, fargs, fbody, i.line)
+            ))
+            idx += 1
+        elif isinstance(i, Token) and i.token == "return":
+            idx += 1
+            ret = tokens[idx]
+
+            actions.append(Action(
+                ActionType.RETURN,
+                {},
+                Return(ret)
+            ))
+            idx += 1
+        elif isinstance(i, Token) and i.token == "extern":
+            idx += 1
+            ret = tokens[idx]
+
+            if not isinstance(ret, Block):
+                error(orig, ret,
+                      "Excepted Block!",
+                      ret.start-1, ret.end-1)
+
+            actions.append(Action(
+                ActionType.C_EXTERN,
+                {},
+                ret
+            ))
+            idx += 1
         elif isinstance(i, FunctionCall):
             actions.append(Action(
                 ActionType.FUNC_CALL,
@@ -164,6 +261,11 @@ def make_actions(tokens: list[Token, ...], orig: list[Token]) -> list[Action]:
             nxtoken = tokens[idx]
 
             print("Next token:", nxtoken)
+
+            if isinstance(nxtoken, Block):
+                error(orig, tokens[idx],
+                      "Unexcepted Block!",
+                      tokens[idx - 1].start, tokens[idx].end)
 
             if nxtoken.token == "--":
                 actions.append(Action(
@@ -212,6 +314,43 @@ def make_actions(tokens: list[Token, ...], orig: list[Token]) -> list[Action]:
                     {"reassignation": True},
                     Variable(None, i.token, tokens[idx])
                 ))
+            elif nxtoken.token == "\n":
+                error(tokens, tokens[idx-1], "(Maybe no operation) Newline is not supported!!!",
+                      tokens[idx-1].start, nxtoken.end)
+        elif isinstance(i, IndexedValue):
+            typ = i.value.token
+            arr = i.index
+
+            if typ not in TYPES:
+                error(orig, tokens[idx], f"Unknown type: {typ}",
+                      tokens[idx].start, tokens[idx].end)
+
+            addtyp = [typ, arr]
+            
+            idx += 1
+            names = []
+            while True:
+                name = tokens[idx].token
+                names.append(name)
+                if tokens[idx+1].token != ",":
+                    break
+                if tokens[idx+2].token == "=":
+                    idx += 1
+                    break
+                idx += 2
+
+            idx += 1
+            if tokens[idx].token == "=":
+                idx += 1
+                value = tokens[idx]
+
+                for m in names:
+                    actions.append(Action(
+                        ActionType.ASSIGNATION,
+                        {},
+                        Variable(addtyp, m, value)
+                    ))
+                    COMPILE_TIME_VARS.append(Variable(addtyp, m, value))
         else:
             if isinstance(tokens[idx], Token):
                 error(orig, tokens[idx], "Syntax Error or Unimplemented Action!",

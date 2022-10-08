@@ -1,0 +1,20 @@
+func file_open(string name, mode) uint {
+	extern {
+		FILE* _file = fopen(name, mode);
+		return (unsigned int)_file;
+	}
+}
+
+func file_close(uint _file) {
+	extern {fclose((FILE*)_file);}
+}
+
+func file_write(uint _file, uint count, ubyte[] data) {
+	extern {fwrite(data, count, 1, ((FILE*)_file));}
+}
+
+
+ubyte[] mydata = ['H','e','l','l','o']
+uint myfile = file_open("Hello.txt", "w")
+file_write(myfile, 5, mydata)
+file_close(myfile)

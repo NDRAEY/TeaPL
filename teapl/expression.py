@@ -1,6 +1,11 @@
-from tokenizer import Token
-from objects import Expression, Comprasion, Group
-from error import error
+try:
+    from teapl.tokenizer import Token
+    from teapl.objects import Expression, Comprasion, Group
+    from teapl.error import error
+except:
+    from tokenizer import Token
+    from objects import Expression, Comprasion, Group
+    from error import error
 
 COMPARE = [
     ">", "<",
@@ -19,7 +24,7 @@ def expr2str(expr: Expression) -> str:
     print("=",expr)
     for i in expr.tokens:
         if isinstance(i, Expression):
-            s += expr2str(i)
+            s += "("+expr2str(i)+")"
             continue
         s += i.token
         
@@ -45,20 +50,16 @@ def parse_expressions(tokens, orig: list[Token, ...]) -> list[Token, ...]:
                 if idx >= len(tokens):
                     break
                 if isinstance(tokens[idx], Token) and tokens[idx].token == "\n": break
-                if isinstance(tokens[idx], Group):
-                    prs = parse_expressions(tokens[idx].tokens, orig)[0]
-                    # ^--- Just check for correct expression
-                    # expr.append(tokens[idx])
-                    expr.append(prs)
-                    idx += 1
-                    continue
                 if not sign:
-                    if tokens[idx].token in ARITH:
+                    if isinstance(tokens[idx], Token) and tokens[idx].token in ARITH:
                         error(orig, tokens[idx], "Arithmetic error: Double sign!",
                               tokens[idx].start, tokens[idx].end)
-                        exit(1)
                     else:
-                        expr.append(tokens[idx])
+                        if isinstance(tokens[idx], Group):
+                            prs = parse_expressions(tokens[idx].tokens, orig)[0]
+                            expr.append(prs)
+                        else:
+                            expr.append(tokens[idx])
                         sign = True
                 else:
                     if idx >= len(tokens): break
