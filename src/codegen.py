@@ -53,15 +53,19 @@ def codegen(actions: list[Action], wrap = True) -> str:
 
         need = el.args
         if el.type == ActionType.ASSIGNATION:
+            vvalue = need.value
+            if isinstance(vvalue, Expression):
+                vvalue = expr.expr2str(vvalue)
+            else:
+                vvalue = vvalue.token
+            
             if "reassignation" not in el.metadata:
                 vtype = to_ctype(need.type)
                 vname = need.name
-                vvalue = need.value.token
                 code += f"{vtype} {vname} = {vvalue};\n"
                 variables.append(need)
             else:
                 vname = need.name
-                vvalue = need.value.token
                 code += f"{vname} = {vvalue};\n"
                 variables.append(need)
 

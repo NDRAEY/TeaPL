@@ -65,7 +65,7 @@ def pretty(tokens: list[Token, ...], origtk: list[Token]) -> list[Token, ...]:
                 idx += 1
             
             tok.append(Group(collected))
-            idx += 1
+            # idx += 1
         elif tokens[idx].token == "{":  # Blocks
             block = []
 
@@ -80,6 +80,11 @@ def pretty(tokens: list[Token, ...], origtk: list[Token]) -> list[Token, ...]:
                 idx += 1
             tok.append(Block(block, block[0].line))
             # idx += 1
+        elif tokens[idx].token == "//":
+            idx += 1
+            while True:
+                if tokens[idx].token == "\n": break
+                idx += 1
         else:
             tok.append(i)
         idx += 1

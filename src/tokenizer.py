@@ -30,7 +30,7 @@ def tokenize(code):
                     idx += 2
                     continue
 
-            if i in ("+", "-"):
+            if i in ("+", "-", "|", "&", "/"):
                 n = code[idx+1]
                 if n == i:
                     i = i+n
