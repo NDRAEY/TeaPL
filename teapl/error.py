@@ -1,4 +1,4 @@
-from tokenizer import Token
+from teapl.tokenizer import Token
 
 def error(tokens: list[Token], token: Token, msg: str, start: int, end: int):
     line = token.line

@@ -1,8 +1,8 @@
 from enum import Enum
-from error import error
-from tokenizer import Token
+from teapl.error import error
+from teapl.tokenizer import Token
 
-from objects import *
+from teapl.objects import *
 
 class ActionType(Enum):
     ASSIGNATION = 0

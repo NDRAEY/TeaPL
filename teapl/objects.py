@@ -1,6 +1,8 @@
 from typing import Any
 from dataclasses import dataclass
-from tokenizer import Token
+from .tokenizer import Token
+
+ver = "1.1"
 
 @dataclass
 class DefaultVariable:

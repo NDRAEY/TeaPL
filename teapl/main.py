@@ -1,17 +1,13 @@
 #!/usr/bin/python3
 
-import tokenizer
-import action
-import objects
-import pretty
-import expression as expr
-from codegen import codegen
+from teapl import tokenizer, action, objects, pretty
+from teapl.objects import ver
+from teapl import expression as expr
+from teapl.codegen import codegen
 import sys, os
 import subprocess as sp
 import time
 from pprint import pprint
-
-ver = "1.1"
 
 def parse_code(code: str) -> tuple[list[objects.Token], list[objects.Token]]:
     tokenized = orig = tokenizer.tokenize(code)
