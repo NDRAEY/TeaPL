@@ -1,10 +1,14 @@
 #!/usr/bin/python3
 
-from teapl import tokenizer, action, objects, pretty
+import sys, os
+try:
+    from teapl import tokenizer, action, objects, pretty
+except:
+    print(f"TeaPL module is not installed. Run 'python3 setup.py install' first!")
+    exit(1)
 from teapl.objects import ver
 from teapl import expression as expr
 from teapl.codegen import codegen
-import sys, os
 import subprocess as sp
 import time
 from pprint import pprint

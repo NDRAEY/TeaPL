@@ -35,3 +35,23 @@ Currently, it transpiles code into C source.
 - [ ] Pointers
 - [ ] Memory safety
 - [ ] FFI
+
+# Installation (for Linux)
+
+1. Clone repository:
+	```bash
+	git clone https://github.com/NDRAEY/TeaPL
+	```
+
+2. Enter directory and install package:
+	```bash
+	python3 setup.py install
+	```
+
+3. Now, you have the `teapl` program installed!
+
+# Usage
+
+	```bash
+	teapl program.tea
+	```
