@@ -51,6 +51,7 @@ Currently, it transpiles code into C source.
 3. Now, you have the `teapl` program installed!
 
 # Usage
-	```bash
-	teapl program.tea
-	```
+
+```bash
+teapl program.tea
+```
