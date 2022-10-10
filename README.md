@@ -45,6 +45,7 @@ Currently, it transpiles code into C source.
 
 2. Enter directory and install package:
 	```bash
+	cd TeaPL
 	python3 setup.py install
 	```
 
