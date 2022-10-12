@@ -3,12 +3,18 @@
 import sys, os
 try:
     from teapl import tokenizer, action, objects, pretty
+    from teapl.objects import ver
+    from teapl import expression as expr
+    from teapl.codegen import codegen
 except:
+    import tokenizer, action, objects, pretty
+    from objects import ver
+    import expression as expr
+    from codegen import codegen
+    '''
     print(f"TeaPL module is not installed. Run 'python3 setup.py install' first!")
     exit(1)
-from teapl.objects import ver
-from teapl import expression as expr
-from teapl.codegen import codegen
+    '''
 import subprocess as sp
 import time
 from pprint import pprint

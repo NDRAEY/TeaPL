@@ -1,6 +1,11 @@
-from teapl.tokenizer import Token
-from teapl.objects import Expression, Comprasion, Group
-from teapl.error import error
+try:
+    from teapl.tokenizer import Token
+    from teapl.objects import Expression, Comprasion, Group
+    from teapl.error import error
+except:
+    from tokenizer import Token
+    from objects import Expression, Comprasion, Group
+    from error import error
 
 COMPARE = [
     ">", "<",

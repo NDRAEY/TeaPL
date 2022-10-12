@@ -1,6 +1,10 @@
 from typing import Any
 from dataclasses import dataclass
-from .tokenizer import Token
+
+try:
+    from .tokenizer import Token
+except:
+    from tokenizer import Token
 
 ver = "1.1"
 

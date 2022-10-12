@@ -1,0 +1,22 @@
+func myfunction() {
+	// No arguments
+	// No return
+	printf("Myfunction: Hello, World!!!\n")
+}
+
+myfunction()
+
+func funcargs(uint a, int b, string c) {
+	// No return
+	printf("Func: %d, %d, %s\n", a, b, c)
+}
+
+funcargs(8, 2, "Hello, World")
+
+func returnable() uint {
+	return 8+2
+}
+
+uint value = returnable()
+
+printf("Value is: %d\n", value);

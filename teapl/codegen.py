@@ -1,9 +1,17 @@
-from teapl.tokenizer import Token
-from teapl.objects import *
 from random import randint
-from teapl.action import Action, ActionType, make_actions
-import teapl.pretty as pretty
-import teapl.expression as expr
+
+try:
+    from teapl.tokenizer import Token
+    from teapl.objects import *
+    from teapl.action import Action, ActionType, make_actions
+    import teapl.pretty as pretty
+    import teapl.expression as expr
+except:
+    from tokenizer import Token
+    from objects import *
+    from action import Action, ActionType, make_actions
+    import pretty as pretty
+    import expression as expr
 
 def randstr() -> str:
     return ''.join([chr(randint(ord('a'), ord('z'))) for t in range(10)])

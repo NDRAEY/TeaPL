@@ -2,10 +2,16 @@
 Charmeleon: Join tokenized strings into one string (internal)
 """
 
-from teapl.tokenizer import Token
-from teapl.error import error
-from teapl.objects import FunctionCall, Block, Comprasion, Group
-from teapl.expression import parse_expressions as exprp
+try:
+    from teapl.tokenizer import Token
+    from teapl.error import error
+    from teapl.objects import FunctionCall, Block, Comprasion, Group
+    from teapl.expression import parse_expressions as exprp
+except:
+    from tokenizer import Token
+    from error import error
+    from objects import FunctionCall, Block, Comprasion, Group
+    from expression import parse_expressions as exprp
 
 def select_line(tokens: list[Token], line: int) -> list[Token, ...]:
     t = []
