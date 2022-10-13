@@ -17,14 +17,16 @@ def randstr() -> str:
     return ''.join([chr(randint(ord('a'), ord('z'))) for t in range(10)])
 
 def to_ctype(typ: str) -> str:
+    if type(typ) is list:
+        typ = typ[0]
     if typ=="ubyte": return "unsigned char"
-    if typ=="byte": return "char"
-    if typ=="ushort": return "unsigned short"
-    if typ=="short": return "short"
-    if typ=="uint": return "unsigned int"
-    if typ=="int": return "int"
-    if typ=="string": return "char*"
-    if typ=="bool": return "char"
+    elif typ=="byte": return "char"
+    elif typ=="ushort": return "unsigned short"
+    elif typ=="short": return "short"
+    elif typ=="uint": return "unsigned int"
+    elif typ=="int": return "int"
+    elif typ=="string": return "char*"
+    elif typ=="bool": return "char"
 
 def build_args(variables: list[Variable], args: list[Token]) -> str:
     total = ""
@@ -49,6 +51,26 @@ def parse_code_tokenized(tokens, orig: list[Token]) -> tuple[list[Token]]:
     tokenized = pretty.build_funccalls(tokenized, orig)
     return tokenized
 
+def array2c(array: Array):
+    s = ""
+    elements = []
+
+    for i in array.tokens:
+        if i.token == ",": continue
+        elements.append(i)
+
+    s += "{"
+    for n, i in enumerate(elements):
+        if n == len(elements)-1:
+            s += i.token
+        else:
+            s += i.token+", "
+    s += "}"
+    return s
+
+def indexed2c(val: IndexedValue):
+    return val.value.token + "["+val.index.token+"]"
+
 def codegen(actions: list[Action], wrap = True) -> str:
     code = ""
     funccode = ""
@@ -64,13 +86,21 @@ def codegen(actions: list[Action], wrap = True) -> str:
             vvalue = need.value
             if isinstance(vvalue, Expression):
                 vvalue = expr.expr2str(vvalue)
-            else:
+            elif isinstance(vvalue, Token):
                 vvalue = vvalue.token
+            elif isinstance(vvalue, Array):
+                vvalue = array2c(vvalue)
+            elif isinstance(vvalue, IndexedValue):
+                vvalue = indexed2c(vvalue)
+
+            addit = ""
+            if type(need.type) is list and isinstance(need.type[1], Array):
+                addit = "[]"
             
             if "reassignation" not in el.metadata:
                 vtype = to_ctype(need.type)
                 vname = need.name
-                code += f"{vtype} {vname} = {vvalue};\n"
+                code += f"{vtype} {vname}{addit} = {vvalue};\n"
                 variables.append(need)
             else:
                 vname = need.name

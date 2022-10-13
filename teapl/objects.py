@@ -63,3 +63,12 @@ class Loop:
 @dataclass
 class Group:
     tokens: list[Token, ...]
+
+@dataclass
+class Array:
+    tokens: list[Token, ...]
+
+@dataclass
+class IndexedValue:
+    value: Any
+    index: Token

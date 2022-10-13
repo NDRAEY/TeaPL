@@ -5,12 +5,12 @@ Charmeleon: Join tokenized strings into one string (internal)
 try:
     from teapl.tokenizer import Token
     from teapl.error import error
-    from teapl.objects import FunctionCall, Block, Comprasion, Group
+    from teapl.objects import FunctionCall, Block, Comprasion, Group, Array
     from teapl.expression import parse_expressions as exprp
 except:
     from tokenizer import Token
     from error import error
-    from objects import FunctionCall, Block, Comprasion, Group
+    from objects import FunctionCall, Block, Comprasion, Group, Array
     from expression import parse_expressions as exprp
 
 def select_line(tokens: list[Token], line: int) -> list[Token, ...]:
@@ -46,7 +46,7 @@ def pretty(tokens: list[Token, ...], origtk: list[Token]) -> list[Token, ...]:
             collect = []
             while True:
                 if idx>=len(tokens):
-                    error(tokens, first, "Unexcepted EOF", first.start, tokens[idx-1].end)
+                    error(tokens, first, "Unexcepted end", first.start, tokens[idx-1].end)
 
                 if tokens[idx].token=="\"":
                     break
@@ -113,6 +113,34 @@ def build_funccalls(tokens, orig: list[Token]) -> list[Token, ...]:
             
             tok.append(FunctionCall(el.token, args, args_raw, el.line))
             idx += 1
+        else:
+            tok.append(el)
+        
+        idx += 1
+    return tok
+
+def build_arrays(tokens, orig: list[Token]) -> list[Token, ...]:
+    tok = []
+    idx = 0
+
+    while idx < len(tokens):
+        el = tokens[idx]
+
+        if isinstance(el, Token) and el.token == "[":
+            collected = []
+
+            idx+=1
+            level = 1
+            while True:
+                if tokens[idx].token == "[":
+                    level += 1
+                if tokens[idx].token == "]":
+                    level -= 1
+                if level == 0: break
+                collected.append(tokens[idx])
+                idx += 1
+            
+            tok.append(Array(collected))
         else:
             tok.append(el)
         

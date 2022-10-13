@@ -57,7 +57,12 @@ def make_actions(tokens: list[Token, ...], orig: list[Token]) -> list[Action]:
 
         if isinstance(tokens[idx], Token) and (i.token in TYPES):
             otype = i.token
+            arr = None
             idx += 1
+
+            if isinstance(tokens[idx], Array):
+                arr = tokens[idx]
+                idx += 1
 
             i = tokens[idx]
             while i.token == "\n":
@@ -80,7 +85,10 @@ def make_actions(tokens: list[Token, ...], orig: list[Token]) -> list[Action]:
                 idx += 2
 
             idx += 1
-            if tokens[idx].token == "\n":
+            if arr is not None:
+                otype = [otype, arr]
+            
+            if tokens[idx].token == "\n":  # If value was not specified
                 for m in names:
                     actions.append(Action(
                         ActionType.ASSIGNATION,
@@ -92,6 +100,10 @@ def make_actions(tokens: list[Token, ...], orig: list[Token]) -> list[Action]:
             if tokens[idx].token == "=":
                 idx += 1
                 value = tokens[idx]
+
+                nx = tokens[idx+1]
+                if isinstance(nx, Array):
+                    value = IndexedValue(value, nx.tokens[0])
 
                 for m in names:
                     actions.append(Action(
