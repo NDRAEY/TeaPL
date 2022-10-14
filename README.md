@@ -30,6 +30,8 @@ Currently, it transpiles code into C source.
 - [ ] Standard library
 - [ ] String concatenation
 - [ ] Arrays
+	- [ ] Single-type
+	- [ ] Multi-type
 - [ ] Dictionaries
 - [ ] Overflow prevention
 - [ ] Pointers
@@ -37,6 +39,8 @@ Currently, it transpiles code into C source.
 - [ ] FFI
 
 # Installation (for Linux)
+
+Make sure `clang` or `gcc` installed
 
 1. Clone repository:
 	```bash
