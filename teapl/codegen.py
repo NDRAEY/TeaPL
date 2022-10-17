@@ -13,6 +13,8 @@ except:
     import pretty as pretty
     import expression as expr
 
+from pprint import pprint
+
 def randstr() -> str:
     return ''.join([chr(randint(ord('a'), ord('z'))) for t in range(10)])
 
@@ -28,14 +30,35 @@ def to_ctype(typ: str) -> str:
     elif typ=="string": return "char*"
     elif typ=="bool": return "char"
 
+def indexed2c(val: IndexedValue) -> str:
+    # TODO: Slices
+    return val.value.token + "["+val.index.tokens[0].token+"]"
+
 def build_args(variables: list[Variable], args: list[Token]) -> str:
+    prep = []
+
+    idx = 0
+    while idx < len(args):
+        el = args[idx]
+
+        if isinstance(el, Token) and el.token == ",":
+            idx += 1
+            continue
+
+        prep.append(el)
+        idx += 1
+
     total = ""
 
-    for n, i in enumerate(args):
-        total += i.token
-        if n!=len(args)-1:
+    for n, i in enumerate(prep):
+        if isinstance(i, Token):
+            total += i.token
+        elif isinstance(i, IndexedValue):
+            total += indexed2c(i)
+
+        if n+1 < len(prep):
             total += ", "
-    
+
     return total
 
 def find_var(variables: list, name: str):
@@ -48,6 +71,17 @@ def parse_code_tokenized(tokens, orig: list[Token]) -> tuple[list[Token]]:
     tokenized = pretty.remove_whitespaces(tokenized)
     tokenized = expr.parse_expressions(tokenized, orig)
     tokenized = expr.parse_comprasions(tokenized, orig)
+    tokenized = pretty.build_arrays(tokenized, orig)
+    tokenized = pretty.build_indexes(tokenized, orig)
+    tokenized = pretty.build_funccalls(tokenized, orig)
+    return tokenized
+
+def parse_code_tokenized_lite(tokens, orig: list[Token]) -> tuple[list[Token]]:
+    tokenized = pretty.pretty(tokens, orig)
+    tokenized = pretty.remove_whitespaces(tokenized)
+    tokenized = expr.parse_expressions(tokenized, orig)
+    tokenized = pretty.build_arrays(tokenized, orig)
+    tokenized = pretty.build_indexes(tokenized, orig)
     tokenized = pretty.build_funccalls(tokenized, orig)
     return tokenized
 
@@ -67,9 +101,6 @@ def array2c(array: Array):
             s += i.token+", "
     s += "}"
     return s
-
-def indexed2c(val: IndexedValue):
-    return val.value.token + "["+val.index.token+"]"
 
 def codegen(actions: list[Action], wrap = True) -> str:
     code = ""
@@ -94,11 +125,12 @@ def codegen(actions: list[Action], wrap = True) -> str:
                 vvalue = indexed2c(vvalue)
 
             addit = ""
-            if type(need.type) is list and isinstance(need.type[1], Array):
+            if (type(need.type) is list) and (type(need.type[1]) is list):
                 addit = "[]"
             
             if "reassignation" not in el.metadata:
-                vtype = to_ctype(need.type)
+                print(need.type)
+                vtype = to_ctype(need.type[0]) if type(need.type) is list else to_ctype(need.type)
                 vname = need.name
                 code += f"{vtype} {vname}{addit} = {vvalue};\n"
                 variables.append(need)
@@ -109,9 +141,12 @@ def codegen(actions: list[Action], wrap = True) -> str:
 
         elif el.type == ActionType.FUNC_CALL:
             fname = need.name
-            fargs = need.args
+            fargs = argsorig = need.args
 
-            prepargs = build_args(variables, fargs)
+            prepargs = parse_code_tokenized_lite(fargs, argsorig)
+            prepargs = build_args(variables, prepargs)
+            print("Prepargs")
+            pprint(prepargs)
 
             code += f"{fname}({prepargs});\n"
 
@@ -160,7 +195,7 @@ def codegen(actions: list[Action], wrap = True) -> str:
 
             wbody = parse_code_tokenized(wbody, worig)
             wbody = make_actions(wbody, worig)
-            
+
             wtot = codegen(wbody, wrap=False)
 
             code += "while("+' '.join(maincond)+") {\n" + \

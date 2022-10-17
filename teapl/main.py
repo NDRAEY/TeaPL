@@ -26,6 +26,7 @@ def parse_code(code: str) -> tuple[list[objects.Token], list[objects.Token]]:
     tokenized = expr.parse_expressions(tokenized, orig)
     tokenized = expr.parse_comprasions(tokenized, orig)
     tokenized = pretty.build_arrays(tokenized, orig)
+    tokenized = pretty.build_indexes(tokenized, orig)
     tokenized = pretty.build_funccalls(tokenized, orig)
     return tokenized, orig
 

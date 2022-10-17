@@ -1,3 +1,5 @@
+# How you call this? AST?
+
 from enum import Enum
 
 try:
@@ -55,14 +57,9 @@ def make_actions(tokens: list[Token, ...], orig: list[Token]) -> list[Action]:
             idx += 1
             continue # I know
 
-        if isinstance(tokens[idx], Token) and (i.token in TYPES):
+        if isinstance(i, Token) and (i.token in TYPES):            
             otype = i.token
-            arr = None
             idx += 1
-
-            if isinstance(tokens[idx], Array):
-                arr = tokens[idx]
-                idx += 1
 
             i = tokens[idx]
             while i.token == "\n":
@@ -82,12 +79,9 @@ def make_actions(tokens: list[Token, ...], orig: list[Token]) -> list[Action]:
                 if tokens[idx+2].token == "=":
                     idx += 1
                     break
-                idx += 2
+                idx += 2  # If bug appears change this to 1.
 
             idx += 1
-            if arr is not None:
-                otype = [otype, arr]
-            
             if tokens[idx].token == "\n":  # If value was not specified
                 for m in names:
                     actions.append(Action(
@@ -100,10 +94,6 @@ def make_actions(tokens: list[Token, ...], orig: list[Token]) -> list[Action]:
             if tokens[idx].token == "=":
                 idx += 1
                 value = tokens[idx]
-
-                nx = tokens[idx+1]
-                if isinstance(nx, Array):
-                    value = IndexedValue(value, nx.tokens[0])
 
                 for m in names:
                     actions.append(Action(
@@ -229,6 +219,40 @@ def make_actions(tokens: list[Token, ...], orig: list[Token]) -> list[Action]:
                     {"reassignation": True},
                     Variable(None, i.token, tokens[idx])
                 ))
+        elif isinstance(i, IndexedValue):
+            typ = i.value.token
+            arr = i.index.tokens
+
+            if typ not in TYPES:
+                error(orig, tokens[idx], f"Unknown type: {typ}",
+                      tokens[idx].start, tokens[idx].end)
+
+            addtyp = [i.value.token, i.index.tokens]
+            
+            idx += 1
+            names = []
+            while True:
+                name = tokens[idx].token
+                names.append(name)
+                if tokens[idx+1].token != ",":
+                    break
+                if tokens[idx+2].token == "=":
+                    idx += 1
+                    break
+                idx += 2
+
+            idx += 1
+            if tokens[idx].token == "=":
+                idx += 1
+                value = tokens[idx]
+
+                for m in names:
+                    actions.append(Action(
+                        ActionType.ASSIGNATION,
+                        {},
+                        Variable(addtyp, m, value)
+                    ))
+                    COMPILE_TIME_VARS.append(Variable(addtyp, m, value))
         else:
             if isinstance(tokens[idx], Token):
                 error(orig, tokens[idx], "Syntax Error or Unimplemented Action!",

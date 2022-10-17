@@ -5,12 +5,12 @@ Charmeleon: Join tokenized strings into one string (internal)
 try:
     from teapl.tokenizer import Token
     from teapl.error import error
-    from teapl.objects import FunctionCall, Block, Comprasion, Group, Array
+    from teapl.objects import *
     from teapl.expression import parse_expressions as exprp
 except:
     from tokenizer import Token
     from error import error
-    from objects import FunctionCall, Block, Comprasion, Group, Array
+    from objects import *
     from expression import parse_expressions as exprp
 
 def select_line(tokens: list[Token], line: int) -> list[Token, ...]:
@@ -108,7 +108,7 @@ def build_funccalls(tokens, orig: list[Token]) -> list[Token, ...]:
             args = []
 
             for i in args_raw:
-                if isinstance(i, Token) and i.token in (" ", ","): continue
+                # if isinstance(i, Token) and i.token in (" ", ","): continue
                 args.append(i)
             
             tok.append(FunctionCall(el.token, args, args_raw, el.line))
@@ -139,10 +139,32 @@ def build_arrays(tokens, orig: list[Token]) -> list[Token, ...]:
                 if level == 0: break
                 collected.append(tokens[idx])
                 idx += 1
-            
             tok.append(Array(collected))
         else:
             tok.append(el)
         
         idx += 1
+    return tok
+
+def build_indexes(tokens, orig: list[Token]) -> list[Token, ...]:
+    tok = []
+    idx = 0
+
+    while idx < len(tokens):
+        el = tokens[idx]
+
+        if idx+1 < len(tokens):
+            if isinstance(el, Token):
+                idx += 1
+                nx = tokens[idx]
+                if isinstance(nx, Array):
+                    tok.append(IndexedValue(el, nx))
+                else:
+                    tok.extend([el, nx])
+            else:
+                tok.append(el)
+        else:
+            tok.append(el)
+        idx += 1
+
     return tok
