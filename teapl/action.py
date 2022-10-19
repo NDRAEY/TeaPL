@@ -1,15 +1,18 @@
 # How you call this? AST?
 
 from enum import Enum
+from pprint import pprint
 
 try:
     from teapl.error import error
     from teapl.tokenizer import Token
     from teapl.objects import *
+    from teapl.utils import *
 except:
     from error import error
     from tokenizer import Token
     from objects import *
+    from utils import *
 
 class ActionType(Enum):
     ASSIGNATION = 0
@@ -17,6 +20,9 @@ class ActionType(Enum):
     CONDITION = 2
     MATH = 3
     WHILE_LOOP = 4
+    FUNCTION = 5
+    RETURN = 6
+    C_EXTERN = 7
 
 @dataclass
 class Action:
@@ -95,6 +101,18 @@ def make_actions(tokens: list[Token, ...], orig: list[Token]) -> list[Action]:
                 idx += 1
                 value = tokens[idx]
 
+                if isinstance(value, FunctionCall):
+                    tname = value.name
+                    eline = value.line
+                    targs = argsorig = value.args
+
+                    print("N/A", tname, targs)
+                    value = parse_code_tokenized_lite(targs, argsorig)
+                    # value = build_args(value)
+
+                    value = FunctionCall(tname, value, argsorig, eline)
+                    print("Needs:", value)
+
                 for m in names:
                     actions.append(Action(
                         ActionType.ASSIGNATION,
@@ -158,6 +176,59 @@ def make_actions(tokens: list[Token, ...], orig: list[Token]) -> list[Action]:
                 {},
                 Loop(cond, body)
             ))
+        elif isinstance(i, Token) and i.token == "func":
+            idx += 1
+            fcall = tokens[idx]
+
+            fname, fargs = fcall.name, fcall.args
+            
+            print("Name:", fname)
+            print("Args:", fargs)
+
+            idx += 1
+            fbody = tokens[idx]
+            ret = None
+
+            if (not isinstance(fbody, Block)) and isinstance(fbody, Token):
+                ret = fbody.token
+                idx += 1
+                fbody = tokens[idx]
+
+            print("Return:", ret)
+            pprint(fbody)
+
+            actions.append(Action(
+                ActionType.FUNCTION,
+                {},
+                Function(fname, ret, fargs, fbody, i.line)
+            ))
+            idx += 1
+            # exit(1)
+        elif isinstance(i, Token) and i.token == "return":
+            idx += 1
+            ret = tokens[idx]
+
+            actions.append(Action(
+                ActionType.RETURN,
+                {},
+                Return(ret)
+            ))
+            idx += 1
+        elif isinstance(i, Token) and i.token == "extern":
+            idx += 1
+            ret = tokens[idx]
+
+            if not isinstance(ret, Block):
+                error(orig, ret,
+                      "Excepted Block!",
+                      ret.start-1, ret.end-1)
+
+            actions.append(Action(
+                ActionType.C_EXTERN,
+                {},
+                ret
+            ))
+            idx += 1
         elif isinstance(i, FunctionCall):
             actions.append(Action(
                 ActionType.FUNC_CALL,

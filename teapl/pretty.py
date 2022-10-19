@@ -38,6 +38,11 @@ def pretty(tokens: list[Token, ...], origtk: list[Token]) -> list[Token, ...]:
     while idx < len(tokens):
         i = tokens[idx]
 
+        if not isinstance(i, Token):
+            tok.append(i)
+            idx += 1
+            continue
+
         if i.token == "\"":  # Strings
             first = i
 

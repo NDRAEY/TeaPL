@@ -4,19 +4,18 @@ try:
     from teapl.tokenizer import Token
     from teapl.objects import *
     from teapl.action import Action, ActionType, make_actions
-    import teapl.pretty as pretty
+    from teapl.pretty import pretty, remove_whitespaces
     import teapl.expression as expr
+    from teapl.utils import *
 except:
     from tokenizer import Token
     from objects import *
     from action import Action, ActionType, make_actions
-    import pretty as pretty
+    from pretty import pretty, remove_whitespaces
     import expression as expr
+    from utils import *
 
 from pprint import pprint
-
-def randstr() -> str:
-    return ''.join([chr(randint(ord('a'), ord('z'))) for t in range(10)])
 
 def to_ctype(typ: str) -> str:
     if type(typ) is list:
@@ -29,61 +28,24 @@ def to_ctype(typ: str) -> str:
     elif typ=="int": return "int"
     elif typ=="string": return "char*"
     elif typ=="bool": return "char"
-
-def indexed2c(val: IndexedValue) -> str:
-    # TODO: Slices
-    return val.value.token + "["+val.index.tokens[0].token+"]"
-
-def build_args(variables: list[Variable], args: list[Token]) -> str:
-    prep = []
-
-    idx = 0
-    while idx < len(args):
-        el = args[idx]
-
-        if isinstance(el, Token) and el.token == ",":
-            idx += 1
-            continue
-
-        prep.append(el)
-        idx += 1
-
-    total = ""
-
-    for n, i in enumerate(prep):
-        if isinstance(i, Token):
-            total += i.token
-        elif isinstance(i, IndexedValue):
-            total += indexed2c(i)
-
-        if n+1 < len(prep):
-            total += ", "
-
-    return total
+    else: return typ
 
 def find_var(variables: list, name: str):
     for i in variables:
         if i.name == name:
             return i
 
-def parse_code_tokenized(tokens, orig: list[Token]) -> tuple[list[Token]]:
-    tokenized = pretty.pretty(tokens, orig)
-    tokenized = pretty.remove_whitespaces(tokenized)
-    tokenized = expr.parse_expressions(tokenized, orig)
-    tokenized = expr.parse_comprasions(tokenized, orig)
-    tokenized = pretty.build_arrays(tokenized, orig)
-    tokenized = pretty.build_indexes(tokenized, orig)
-    tokenized = pretty.build_funccalls(tokenized, orig)
-    return tokenized
+def simple_unite(tokens):
+    a = ""
 
-def parse_code_tokenized_lite(tokens, orig: list[Token]) -> tuple[list[Token]]:
-    tokenized = pretty.pretty(tokens, orig)
-    tokenized = pretty.remove_whitespaces(tokenized)
-    tokenized = expr.parse_expressions(tokenized, orig)
-    tokenized = pretty.build_arrays(tokenized, orig)
-    tokenized = pretty.build_indexes(tokenized, orig)
-    tokenized = pretty.build_funccalls(tokenized, orig)
-    return tokenized
+    for i in tokens:
+        tmp = to_ctype(i.token)
+        if tmp != i.token:
+            a += tmp+" "
+        else:
+            a += i.token+" "
+
+    return a
 
 def array2c(array: Array):
     s = ""
@@ -102,6 +64,20 @@ def array2c(array: Array):
     s += "}"
     return s
 
+def format2c(value) -> str:
+    if isinstance(value, Expression):
+        return expr.expr2str(value)
+    elif isinstance(value, Token):
+        return value.token
+    elif isinstance(value, Array):
+        return array2c(value)
+    elif isinstance(value, IndexedValue):
+        return indexed2c(value)
+    elif isinstance(value, FunctionCall):
+        return f"{value.name}({build_args(value.args)})"
+    else:
+        return value
+
 def codegen(actions: list[Action], wrap = True) -> str:
     code = ""
     funccode = ""
@@ -115,21 +91,15 @@ def codegen(actions: list[Action], wrap = True) -> str:
         need = el.args
         if el.type == ActionType.ASSIGNATION:
             vvalue = need.value
-            if isinstance(vvalue, Expression):
-                vvalue = expr.expr2str(vvalue)
-            elif isinstance(vvalue, Token):
-                vvalue = vvalue.token
-            elif isinstance(vvalue, Array):
-                vvalue = array2c(vvalue)
-            elif isinstance(vvalue, IndexedValue):
-                vvalue = indexed2c(vvalue)
+            
+            vvalue = format2c(vvalue)
 
             addit = ""
             if (type(need.type) is list) and (type(need.type[1]) is list):
                 addit = "[]"
             
             if "reassignation" not in el.metadata:
-                print(need.type)
+                # print(need.type)
                 vtype = to_ctype(need.type[0]) if type(need.type) is list else to_ctype(need.type)
                 vname = need.name
                 code += f"{vtype} {vname}{addit} = {vvalue};\n"
@@ -144,8 +114,8 @@ def codegen(actions: list[Action], wrap = True) -> str:
             fargs = argsorig = need.args
 
             prepargs = parse_code_tokenized_lite(fargs, argsorig)
-            prepargs = build_args(variables, prepargs)
-            print("Prepargs")
+            prepargs = build_args(prepargs)
+            print("Prepargs => ", end='')
             pprint(prepargs)
 
             code += f"{fname}({prepargs});\n"
@@ -201,6 +171,51 @@ def codegen(actions: list[Action], wrap = True) -> str:
             code += "while("+' '.join(maincond)+") {\n" + \
                 wtot + \
             "}\n"
+        elif el.type == ActionType.FUNCTION:
+            fname = need.name
+            fret  = to_ctype(need.return_type)
+            nargs = remove_whitespaces(need.args)
+            nargs = simple_unite(nargs)
+            # fargs = build_args(need.args)
+            fargs = nargs
+            fbody = forigbody = need.tokens.tokens
+
+            fcode = parse_code_tokenized(fbody, forigbody)
+            fcode = make_actions(fcode, forigbody)
+            fcode = codegen(fcode, wrap=False)
+
+            if fret is None:
+                fret = "void"
+            
+            # print("Name:", fname, "Return:", fret, "Args:", fargs, "Body:", fbody)
+
+            funccode += f"{fret} {fname}({fargs}) "+"{\n" + \
+                fcode + \
+            "}\n"
+
+            '''
+            print("==========>")
+            print(code)
+            print("<==========")
+            exit(1)
+            '''
+        elif el.type == ActionType.RETURN:
+            val = need.value
+            val = format2c(val)
+            code += f"return {val};\n"
+        elif el.type == ActionType.C_EXTERN:
+            val = need.tokens
+
+            c = ""
+            for i in val:
+                c += i.token
+
+            code += c+"\n"
+        else:
+            print("Unimplemented actions found!")
+            print(need)
+            print("============================")
+            exit(1)
         idx += 1
 
     if wrap:

@@ -29,8 +29,8 @@ class FunctionCall:
 class Function:
     name: str
     return_type: str
-    args: str
-    tokens: list[Token]
+    args: list[Token, ...]
+    tokens: list[Token, ...]
     line: int
 
 @dataclass
@@ -72,3 +72,7 @@ class Array:
 class IndexedValue:
     value: Any
     index: Token
+
+@dataclass
+class Return:
+    value: Any
