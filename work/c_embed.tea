@@ -1,7 +1,7 @@
 func make_something() {
 	printf("Hello, World!\n")
 	extern {
-		char* myvar = "What a...";
+		char myvar[] = "What a...";
 		myvar[2] = '-'; // IDK it's causes SIGSEGV
 	}
 	printf("%s", myvar)
