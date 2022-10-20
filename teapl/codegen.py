@@ -20,14 +20,14 @@ from pprint import pprint
 def to_ctype(typ: str) -> str:
     if type(typ) is list:
         typ = typ[0]
-    if typ=="ubyte": return "unsigned char"
-    elif typ=="byte": return "char"
+    if typ=="ubyte":    return "unsigned char"
+    elif typ=="byte":   return "char"
     elif typ=="ushort": return "unsigned short"
-    elif typ=="short": return "short"
-    elif typ=="uint": return "unsigned int"
-    elif typ=="int": return "int"
-    elif typ=="string": return "char*"
-    elif typ=="bool": return "char"
+    elif typ=="short":  return "short"
+    elif typ=="uint":   return "unsigned int"
+    elif typ=="int":    return "int"
+    elif typ=="string": return ["char", []]
+    elif typ=="bool":   return "char"
     else: return typ
 
 def find_var(variables: list, name: str):
@@ -36,6 +36,7 @@ def find_var(variables: list, name: str):
             return i
 
 def simple_unite(tokens):
+    '''
     a = ""
 
     for i in tokens:
@@ -46,6 +47,65 @@ def simple_unite(tokens):
             a += i.token+" "
 
     return a
+    '''
+    st = ""
+    tmp = []
+
+    idx = 0
+    while idx < len(tokens):
+        el = tokens[idx]
+
+        typ = el.token
+        idx += 1
+
+        var = []
+        while True:
+            if (idx >= len(tokens)) or tokens[idx].token == ",": break
+            var.append(tokens[idx].token)
+            idx += 1
+        if var:
+            tmp.append([typ, var[0]])
+        else:
+            tmp.append(typ)
+        idx += 1
+    print(tmp)
+
+    newtmp = []
+
+    idx = 0
+    while idx < len(tmp):
+        if len(tmp[idx])==1:
+            if idx-1 < 0: # a, b, c  # should be: type a, b, c
+                print("No type for first argument!!!")
+                exit(1)
+            newtmp[idx-1].append(tmp[idx])
+            del tmp[idx]
+            continue
+        else:
+            newtmp.append(tmp[idx])
+        idx += 1
+    print(newtmp)
+
+    for q in newtmp:
+        t = to_ctype(q[0])
+        v = q[1:]
+
+        if type(t) is list:
+            for n, _ in enumerate(v):
+                v[n] += "[]"
+            t = t[0]
+            
+
+        for k in v:
+            st += t+" "+k+", "
+        
+    st = st[:-2]
+
+    print(st)
+
+    # exit(1)
+    
+    return st
 
 def array2c(array: Array):
     s = ""
@@ -91,16 +151,20 @@ def codegen(actions: list[Action], wrap = True) -> str:
         need = el.args
         if el.type == ActionType.ASSIGNATION:
             vvalue = need.value
-            
             vvalue = format2c(vvalue)
 
             addit = ""
             if (type(need.type) is list) and (type(need.type[1]) is list):
                 addit = "[]"
+
             
             if "reassignation" not in el.metadata:
                 # print(need.type)
                 vtype = to_ctype(need.type[0]) if type(need.type) is list else to_ctype(need.type)
+                if type(vtype) is list:
+                    addit = "[]"
+                    vtype = vtype[0]
+
                 vname = need.name
                 code += f"{vtype} {vname}{addit} = {vvalue};\n"
                 variables.append(need)
