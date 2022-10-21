@@ -15,10 +15,9 @@ Currently, it transpiles code into C source.
 - [x] Variables
 	- [x] Assign
 	- [x] Reassign
-- [x] Functions
+- [ ] Functions
 	- [ ] Value-Returnable
-		- [ ] Return any value
-	- [x] Non-Value-Returnable
+	- [ ] Non-Value-Returnable
 - [x] Control flow
 	- [x] if
 	- [ ] elif
@@ -32,15 +31,12 @@ Currently, it transpiles code into C source.
 - [ ] String concatenation
 - [ ] Arrays
 	- [ ] Single-type
-	- [ ] Indexing
-	- [ ] Indexing and assigning
 	- [ ] Multi-type
 - [ ] Dictionaries
 - [ ] Overflow prevention
 - [ ] Pointers
 - [ ] Memory safety
 - [ ] FFI
-	- [ ] Minimal
 
 # Installation (for Linux)
 
