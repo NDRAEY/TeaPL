@@ -152,11 +152,12 @@ def codegen(actions: list[Action], wrap = True) -> str:
         if el.type == ActionType.ASSIGNATION:
             vvalue = need.value
             vvalue = format2c(vvalue)
+            isarray = False
 
             addit = ""
             if (type(need.type) is list) and (type(need.type[1]) is list):
                 addit = "[]"
-
+                isarray = True
             
             if "reassignation" not in el.metadata:
                 # print(need.type)
@@ -164,6 +165,7 @@ def codegen(actions: list[Action], wrap = True) -> str:
                 if type(vtype) is list:
                     addit = "[]"
                     vtype = vtype[0]
+                    if isarray: vtype+="*"
 
                 vname = need.name
                 code += f"{vtype} {vname}{addit} = {vvalue};\n"
