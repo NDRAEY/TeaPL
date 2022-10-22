@@ -31,7 +31,8 @@ Currently, it transpiles code into C source.
 - [ ] Standard library
 - [ ] String concatenation
 - [ ] Arrays
-	- [ ] Single-type
+	- [x] Single-type
+	- [x] Multi-dimensional arrays
 	- [ ] Indexing
 	- [ ] Indexing and assigning
 	- [ ] Multi-type
@@ -40,7 +41,7 @@ Currently, it transpiles code into C source.
 - [ ] Pointers
 - [ ] Memory safety
 - [ ] FFI
-	- [ ] Minimal
+	- [x] Minimal
 
 # Installation (for Linux)
 

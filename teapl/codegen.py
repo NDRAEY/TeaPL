@@ -112,7 +112,11 @@ def array2c(array: Array):
     elements = []
 
     for i in array.tokens:
-        if isinstance(i, Token) and i.token == ",": continue
+        if isinstance(i, Token) and (
+            i.token == "," \
+            or i.token == "\n" \
+            or i.token == "\t" 
+        ): continue
         elements.append(i)
 
     s += "{"
@@ -160,7 +164,8 @@ def dummy_array_filter(array: Array):
 
     return n
     '''
-    return [i for i in array.tokens if not (isinstance(i, Token) and i.token==",")]
+    return [i for i in array.tokens if not (isinstance(i, Token) and \
+            (i.token=="," or i.token=="\n" or i.token=="\t"))]
 
 def codegen(actions: list[Action], wrap = True) -> str:
     code = ""
@@ -180,11 +185,18 @@ def codegen(actions: list[Action], wrap = True) -> str:
 
             addit = ""
             if (type(need.type) is list) and (type(need.type[1]) is list):
-                print("!!!", need, "ARRAY LENGTH", len(dummy_array_filter(need.value)))
+                # print("!!!", need, "ARRAY LENGTH", len(dummy_array_filter(need.value)))
                 arrlen = len(dummy_array_filter(need.value))
 
-                tmp = need.value
+                # print("+++++++++++ BEFORE")
+                # pprint(need.value)
+                # print("+++++++++++ AFTER")
+                tmp = Array(dummy_array_filter(need.value))
+                pprint(tmp)
                 while True:
+                    # print("!!!!!!!!")
+                    # pprint(tmp)
+                    # print("!!!!!!!!")
                     if isinstance(tmp, Array):
                         addit += f"[{len(dummy_array_filter(tmp))}]"
                         tmp = tmp.tokens[0]
@@ -213,11 +225,11 @@ def codegen(actions: list[Action], wrap = True) -> str:
             fargs = argsorig = need.args
 
             prepargs = parse_code_tokenized_lite(fargs, argsorig)
-            print("Pre-Prepargs => ", end='')
-            pprint(prepargs)
+            # print("Pre-Prepargs => ", end='')
+            # pprint(prepargs)
             prepargs = build_args(prepargs)
-            print("Prepargs => ", end='')
-            pprint(prepargs)
+            # print("Prepargs => ", end='')
+            # pprint(prepargs)
 
             code += f"{fname}({prepargs});\n"
 
