@@ -21,7 +21,7 @@ Currently, it transpiles code into C source.
 	- [x] Non-Value-Returnable
 - [x] Control flow
 	- [x] if
-	- [ ] elif
+	- [x] elif
 	- [x] else
 - [ ] Loops
 	- [x] while
