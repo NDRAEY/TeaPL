@@ -292,13 +292,13 @@ def make_actions(tokens: list[Token, ...], orig: list[Token]) -> list[Action]:
                 ))
         elif isinstance(i, IndexedValue):
             typ = i.value.token
-            arr = i.index.tokens
+            arr = i.index
 
             if typ not in TYPES:
                 error(orig, tokens[idx], f"Unknown type: {typ}",
                       tokens[idx].start, tokens[idx].end)
 
-            addtyp = [i.value.token, i.index.tokens]
+            addtyp = [typ, arr]
             
             idx += 1
             names = []

@@ -3,15 +3,17 @@ Charmeleon: Join tokenized strings into one string (internal)
 """
 
 try:
-    from teapl.tokenizer import Token
+    from teapl.tokenizer import Token, TOKENLIST
     from teapl.error import error
     from teapl.objects import *
     from teapl.expression import parse_expressions as exprp
+    import teapl.utils as utils
 except:
-    from tokenizer import Token
+    from tokenizer import Token, TOKENLIST
     from error import error
     from objects import *
     from expression import parse_expressions as exprp
+    import utils
 
 def select_line(tokens: list[Token], line: int) -> list[Token, ...]:
     t = []
@@ -134,7 +136,7 @@ def build_arrays(tokens, orig: list[Token]) -> list[Token, ...]:
         if isinstance(el, Token) and el.token == "[":
             collected = []
 
-            idx+=1
+            idx += 1
             level = 1
             while True:
                 if tokens[idx].token == "[":
@@ -144,7 +146,7 @@ def build_arrays(tokens, orig: list[Token]) -> list[Token, ...]:
                 if level == 0: break
                 collected.append(tokens[idx])
                 idx += 1
-            tok.append(Array(collected))
+            tok.append(Array(utils.parse_code_tokenized_lite(collected, orig)))
         else:
             tok.append(el)
         
@@ -159,17 +161,31 @@ def build_indexes(tokens, orig: list[Token]) -> list[Token, ...]:
         el = tokens[idx]
 
         if idx+1 < len(tokens):
-            if isinstance(el, Token):
+            if isinstance(el, Token) and (el.token not in TOKENLIST):
+                '''
                 idx += 1
                 nx = tokens[idx]
                 if isinstance(nx, Array):
                     tok.append(IndexedValue(el, nx))
                 else:
                     tok.extend([el, nx])
+                '''
+                idx += 1
+                nx = []
+                while idx < len(tokens) and isinstance(tokens[idx], Array):
+                    nx.append(tokens[idx])
+                    idx += 1
+                if len(nx) != 0:
+                    tok.append(IndexedValue(el, nx))
+                else:
+                    tok.append(el)
+                
+                continue
             else:
                 tok.append(el)
         else:
             tok.append(el)
+        
         idx += 1
 
     return tok

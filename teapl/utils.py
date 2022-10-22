@@ -35,7 +35,10 @@ def parse_code_tokenized_lite(tokens, orig: list[Token]) -> tuple[list[Token]]:
 
 def indexed2c(val: IndexedValue) -> str:
     # TODO: Slices
-    return val.value.token + "["+val.index.tokens[0].token+"]"
+    ids = ""
+    for i in val.index:
+        ids += "["+i.tokens[0].token+"]"
+    return val.value.token + ids
 
 def build_args(args: list[Token]) -> str:
     prep = []

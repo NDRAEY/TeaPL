@@ -112,15 +112,27 @@ def array2c(array: Array):
     elements = []
 
     for i in array.tokens:
-        if i.token == ",": continue
+        if isinstance(i, Token) and i.token == ",": continue
         elements.append(i)
 
     s += "{"
     for n, i in enumerate(elements):
         if n == len(elements)-1:
-            s += i.token
+            if isinstance(i, Token):
+                s += i.token
+            elif isinstance(i, Array):
+                s += array2c(i)
+            else:
+                print("Unknown type!!!")
+                exit(1)
         else:
-            s += i.token+", "
+            if isinstance(i, Token):
+                s += i.token+", "
+            elif isinstance(i, Array):
+                s += array2c(i)+", "
+            else:
+                print("Unknown type!!!")
+                exit(1)
     s += "}"
     return s
 
@@ -137,6 +149,18 @@ def format2c(value) -> str:
         return f"{value.name}({build_args(value.args)})"
     else:
         return value
+
+def dummy_array_filter(array: Array):
+    '''
+    n = []
+
+    for i in array.tokens:
+        if isinstance(i, Array):
+            n.append(i)
+
+    return n
+    '''
+    return [i for i in array.tokens if not (isinstance(i, Token) and i.token==",")]
 
 def codegen(actions: list[Action], wrap = True) -> str:
     code = ""
@@ -156,14 +180,23 @@ def codegen(actions: list[Action], wrap = True) -> str:
 
             addit = ""
             if (type(need.type) is list) and (type(need.type[1]) is list):
-                addit = "[]"
+                print("!!!", need, "ARRAY LENGTH", len(dummy_array_filter(need.value)))
+                arrlen = len(dummy_array_filter(need.value))
+
+                tmp = need.value
+                while True:
+                    if isinstance(tmp, Array):
+                        addit += f"[{len(dummy_array_filter(tmp))}]"
+                        tmp = tmp.tokens[0]
+                    else:
+                        break
                 isarray = True
             
             if "reassignation" not in el.metadata:
                 # print(need.type)
                 vtype = to_ctype(need.type[0]) if type(need.type) is list else to_ctype(need.type)
                 if type(vtype) is list:
-                    addit = "[]"
+                    # addit = "[]"
                     vtype = vtype[0]
                     if isarray: vtype+="*"
 
@@ -180,6 +213,8 @@ def codegen(actions: list[Action], wrap = True) -> str:
             fargs = argsorig = need.args
 
             prepargs = parse_code_tokenized_lite(fargs, argsorig)
+            print("Pre-Prepargs => ", end='')
+            pprint(prepargs)
             prepargs = build_args(prepargs)
             print("Prepargs => ", end='')
             pprint(prepargs)
