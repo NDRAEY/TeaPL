@@ -139,7 +139,8 @@ def make_actions(tokens: list[Token, ...], orig: list[Token]) -> list[Action]:
 
             ...  # Check for elif(s) with loop here.
                 
-            if idx < len(tokens): # Check [elif]/else
+            while idx < len(tokens): # Check [elif]/else
+                print(f"{idx}/{len(tokens)}")
                 if tokens[idx].token == "else":
                     idx += 1
                     if idx >= len(tokens):
@@ -157,6 +158,17 @@ def make_actions(tokens: list[Token, ...], orig: list[Token]) -> list[Action]:
                                   tokens[idx].start, tokens[idx].end)
                     elseblock = tokens[idx]
                     conds.append(["else", elseblock])
+                elif tokens[idx].token == "elif":
+                    idx += 1
+                    if idx >= len(tokens):
+                        error(orig, tokens[idx - 1],
+                              "Excepted Condition, but EOF found!",
+                              tokens[idx - 1].start, tokens[idx - 1].end)
+                    cond = tokens[idx]
+                    idx += 1
+                    elifblock = tokens[idx]
+                    conds.append(["elif", cond, elifblock])
+                idx += 1
             actions.append(Action(
                 ActionType.CONDITION,
                 {},
@@ -182,8 +194,8 @@ def make_actions(tokens: list[Token, ...], orig: list[Token]) -> list[Action]:
 
             fname, fargs = fcall.name, fcall.args
             
-            print("Name:", fname)
-            print("Args:", fargs)
+            # print("Name:", fname)
+            # print("Args:", fargs)
 
             idx += 1
             fbody = tokens[idx]
@@ -194,8 +206,8 @@ def make_actions(tokens: list[Token, ...], orig: list[Token]) -> list[Action]:
                 idx += 1
                 fbody = tokens[idx]
 
-            print("Return:", ret)
-            pprint(fbody)
+            # print("Return:", ret)
+            # pprint(fbody)
 
             actions.append(Action(
                 ActionType.FUNCTION,
@@ -203,7 +215,6 @@ def make_actions(tokens: list[Token, ...], orig: list[Token]) -> list[Action]:
                 Function(fname, ret, fargs, fbody, i.line)
             ))
             idx += 1
-            # exit(1)
         elif isinstance(i, Token) and i.token == "return":
             idx += 1
             ret = tokens[idx]

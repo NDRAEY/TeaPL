@@ -265,7 +265,17 @@ def codegen(actions: list[Action], wrap = True) -> str:
                     functot = codegen(funcbody, wrap=False)
 
                     code += functot+"}"
-                    break
+                    # break
+                elif mk[0]=="elif":
+                    elifcond = mk[1]
+                    body = borig = mk[2].tokens
+                    code += "else if("+' '.join([elifcond.what.token, elifcond.sign, elifcond.with_.token])+") {\n"
+
+                    funcbody = parse_code_tokenized(body, borig)
+                    funcbody = make_actions(funcbody, borig)
+                    functot = codegen(funcbody, wrap=False)
+
+                    code += functot+"}"
             ...  # For elif and else
 
             code += "\n"
