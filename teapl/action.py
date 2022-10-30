@@ -158,6 +158,7 @@ def make_actions(tokens: list[Token, ...], orig: list[Token]) -> list[Action]:
                                   tokens[idx].start, tokens[idx].end)
                     elseblock = tokens[idx]
                     conds.append(["else", elseblock])
+                    print("Added else")
                 elif tokens[idx].token == "elif":
                     idx += 1
                     if idx >= len(tokens):
@@ -168,7 +169,11 @@ def make_actions(tokens: list[Token, ...], orig: list[Token]) -> list[Action]:
                     idx += 1
                     elifblock = tokens[idx]
                     conds.append(["elif", cond, elifblock])
+                else:
+                    print("Stopping here... ", tokens[idx])
+                    break
                 idx += 1
+                
             actions.append(Action(
                 ActionType.CONDITION,
                 {},

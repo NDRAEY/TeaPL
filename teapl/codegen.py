@@ -4,31 +4,45 @@ try:
     from teapl.tokenizer import Token
     from teapl.objects import *
     from teapl.action import Action, ActionType, make_actions
-    from teapl.pretty import pretty, remove_whitespaces
+    from teapl.pretty import pretty, remove_whitespaces, build_arrays
     import teapl.expression as expr
     from teapl.utils import *
 except:
     from tokenizer import Token
     from objects import *
     from action import Action, ActionType, make_actions
-    from pretty import pretty, remove_whitespaces
+    from pretty import pretty, remove_whitespaces, build_arrays
     import expression as expr
     from utils import *
 
 from pprint import pprint
 
 def to_ctype(typ: str) -> str:
+    arr = False
     if type(typ) is list:
         typ = typ[0]
-    if typ=="ubyte":    return "unsigned char"
-    elif typ=="byte":   return "char"
-    elif typ=="ushort": return "unsigned short"
-    elif typ=="short":  return "short"
-    elif typ=="uint":   return "unsigned int"
-    elif typ=="int":    return "int"
-    elif typ=="string": return ["char", []]
-    elif typ=="bool":   return "char"
-    else: return typ
+        arr = True
+
+    if typ=="ubyte":    my = "unsigned char"
+    elif typ=="byte":   my = "char"
+    elif typ=="ushort": my = "unsigned short"
+    elif typ=="short":  my = "short"
+    elif typ=="uint":   my = "unsigned int"
+    elif typ=="int":    my = "int"
+    elif typ=="string": my = ["char", []]
+    elif typ=="bool":   my ="char"
+    else: my = typ
+
+    if arr:
+        my = [my, []]
+
+    return my
+
+def to_ctype2(typ):
+    if type(typ) is list:
+        return typ[0]+"[]"
+    else:
+        return typ
 
 def find_var(variables: list, name: str):
     for i in variables:
@@ -48,6 +62,8 @@ def simple_unite(tokens):
 
     return a
     '''
+
+    '''
     st = ""
     tmp = []
 
@@ -63,12 +79,13 @@ def simple_unite(tokens):
             if (idx >= len(tokens)) or tokens[idx].token == ",": break
             var.append(tokens[idx].token)
             idx += 1
+        print(var)
         if var:
             tmp.append([typ, var[0]])
         else:
             tmp.append(typ)
         idx += 1
-    print(tmp)
+    print(1, tmp)
 
     newtmp = []
 
@@ -84,7 +101,7 @@ def simple_unite(tokens):
         else:
             newtmp.append(tmp[idx])
         idx += 1
-    print(newtmp)
+    print(2, newtmp)
 
     for q in newtmp:
         t = to_ctype(q[0])
@@ -106,6 +123,70 @@ def simple_unite(tokens):
     # exit(1)
     
     return st
+    '''
+
+    tokens = build_arrays(tokens, tokens)
+    idx = 0
+
+    total = []
+
+    while idx < len(tokens):
+        el = tokens[idx]
+
+        built = []
+        while True:
+            if idx >= len(tokens): break
+            if isinstance(tokens[idx], Token):
+                if tokens[idx].token == ",": break
+                built.append(tokens[idx].token)
+            elif isinstance(tokens[idx], Array):
+                built[-1] = [built[-1], []]
+            idx += 1
+        
+        total.append(built)
+        idx += 1
+
+    if len(total[0]) <= 1:
+        print(f"No type for first argument: {total[0][0]}")
+        exit(1)
+
+    newtotal = []
+    idx = 0
+    while idx < len(total):
+        if len(total[idx]) == 1:
+            if type(total[idx]) is list:
+                newtotal[idx-1].extend(total[idx])
+            else:
+                newtotal[idx-1].append(total[idx])
+            del total[idx]
+            continue
+        else:
+            newtotal.append(total[idx])
+        idx += 1
+
+    idx = 0
+    string = ""
+
+    while idx < len(newtotal):
+        el = newtotal[idx]
+
+        iw = 0
+        while iw < len(el[1:]):
+            # print(el[0], to_ctype(el[0]))
+            t = to_ctype(el[0])
+
+            if type(t) is list:
+                string += t[0] + " " + el[iw+1] + "[], "
+            else:
+                string += t + " " + el[iw+1] + ", "
+            iw += 1
+            
+        idx += 1
+
+    string = string[:-2]
+
+    print(string)
+    return string
 
 def array2c(array: Array):
     s = ""

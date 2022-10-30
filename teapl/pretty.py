@@ -63,6 +63,23 @@ def pretty(tokens: list[Token, ...], origtk: list[Token]) -> list[Token, ...]:
 
             last = tokens[idx]
             tok.append(Token("\""+''.join(collect)+"\"", first.start, last.end, last.line))
+            
+        elif i.token=="\'":
+            first = i
+            idx += 1
+            collect = []
+
+            while True:
+                if idx >= len(tokens):
+                    error(tokens, first, "Unexcepted end", first.start, tokens[idx-1].end)
+                if tokens[idx].token=="\'":
+                    break
+                collect.append(tokens[idx].token)
+                idx += 1
+            
+            last = tokens[idx]
+            tok.append(Token("\'"+''.join(collect)+"\'", first.start, last.end, last.line))
+            
         elif tokens[idx].token == "(":
             collected = []
 

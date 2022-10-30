@@ -51,6 +51,7 @@ actions = make_actions(tokenized, origtokens)
 pprint(actions)
 print()
 code = codegen(actions)
+code = "#include <stdio.h>\n"+code
 print(code)
 
 ofname = '.'.join(sys.argv[-1].split("/")[-1].split(".")[:-1])
@@ -59,7 +60,8 @@ with open(ofname+".c", "w") as outfile:
     outfile.write(code)
     outfile.close()
 
-compiler = sp.Popen(['clang', '-x', 'c', '-Wall', ofname+".c", '-o', ofname])
+compiler = sp.Popen(['clang', '-x', 'c', '-Wall', '-std=c99', ofname+".c", '-o', ofname])
+# compiler = sp.Popen(['clang', '-x', 'c', '-w', ofname+".c", '-o', ofname])
 compiler.wait()
 
 os.remove(ofname+".c")
