@@ -108,7 +108,7 @@ def pretty(tokens: list[Token, ...], origtk: list[Token]) -> list[Token, ...]:
 
                 block.append(tokens[idx])
                 idx += 1
-            tok.append(Block(block, block[0].line))
+            tok.append(Block(block, block[0].start, block[-1].end, block[0].line))
             # idx += 1
         elif tokens[idx].token == "//":
             idx += 1

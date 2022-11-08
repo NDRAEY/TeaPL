@@ -127,6 +127,9 @@ def make_actions(tokens: list[Token, ...], orig: list[Token]) -> list[Action]:
             print("Condition: ", cond)
             idx += 1
 
+            if idx >= len(tokens):
+                error(tokens, tokens[idx-1], "Unexcepted EOF",
+                      tokens[idx-1].start, tokens[idx-1].start+1)
             body = tokens[idx]
 
             conds.append(["if", cond, body])
@@ -259,6 +262,11 @@ def make_actions(tokens: list[Token, ...], orig: list[Token]) -> list[Action]:
 
             print("Next token:", nxtoken)
 
+            if isinstance(nxtoken, Block):
+                error(orig, tokens[idx],
+                      "Unexcepted Block!",
+                      tokens[idx - 1].start, tokens[idx].end)
+
             if nxtoken.token == "--":
                 actions.append(Action(
                     ActionType.MATH,
@@ -306,6 +314,9 @@ def make_actions(tokens: list[Token, ...], orig: list[Token]) -> list[Action]:
                     {"reassignation": True},
                     Variable(None, i.token, tokens[idx])
                 ))
+            elif nxtoken.token == "\n":
+                error(tokens, tokens[idx-1], "(Maybe no operation) Newline is not supported!!!",
+                      tokens[idx-1].start, nxtoken.end)
         elif isinstance(i, IndexedValue):
             typ = i.value.token
             arr = i.index

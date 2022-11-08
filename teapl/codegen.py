@@ -27,7 +27,7 @@ def to_ctype(typ: str) -> str:
     elif typ=="byte":   my = "char"
     elif typ=="ushort": my = "unsigned short"
     elif typ=="short":  my = "short"
-    elif typ=="uint":   my = "unsigned int"
+    # elif typ=="uint":   my = "unsigned int"
     elif typ=="int":    my = "int"
     elif typ=="string": my = ["char", []]
     elif typ=="bool":   my ="char"

@@ -47,6 +47,8 @@ class Comprasion:
 @dataclass
 class Block:
     tokens: list[Token, ...]
+    start: int
+    end: int
     line: int
 
 @dataclass
